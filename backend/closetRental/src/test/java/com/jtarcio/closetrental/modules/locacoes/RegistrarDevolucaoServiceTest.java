@@ -2,6 +2,9 @@ package com.jtarcio.closetrental.modules.locacoes;
 
 import com.jtarcio.closetrental.modules.catalogo.domain.model.Produto;
 import com.jtarcio.closetrental.modules.catalogo.domain.ports.ProdutoRepositoryPort;
+import com.jtarcio.closetrental.modules.estoque.application.EstoqueService;
+import com.jtarcio.closetrental.modules.estoque.domain.model.MovimentacaoEstoque;
+import com.jtarcio.closetrental.modules.estoque.domain.model.TipoMovimentacao;
 import com.jtarcio.closetrental.modules.locacoes.application.RegistrarDevolucaoService;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.Locacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
@@ -23,7 +26,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,6 +35,7 @@ class RegistrarDevolucaoServiceTest {
 
     @Mock private LocacaoRepositoryPort locacaoPort;
     @Mock private ProdutoRepositoryPort produtoPort;
+    @Mock private EstoqueService estoqueService;
 
     @InjectMocks
     private RegistrarDevolucaoService service;
@@ -58,6 +62,10 @@ class RegistrarDevolucaoServiceTest {
         // Periodo: 5 dias atras ate ontem (devolucao no prazo seria ontem)
         locacaoRetirada.setDataInicio(LocalDate.now().minusDays(5));
         locacaoRetirada.setDataFim(LocalDate.now().minusDays(1));
+
+        // Stub lenient para estoqueService — nao falha se nao chamado em testes de erro
+        MovimentacaoEstoque movStub = new MovimentacaoEstoque(10L, 1L, TipoMovimentacao.ENTRADA, "stub", "sistema");
+        lenient().when(estoqueService.registrarEntrada(anyLong(), anyLong(), anyString())).thenReturn(movStub);
     }
 
     @Nested

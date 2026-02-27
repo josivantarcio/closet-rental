@@ -2,6 +2,9 @@ package com.jtarcio.closetrental.modules.locacoes;
 
 import com.jtarcio.closetrental.modules.catalogo.domain.model.Produto;
 import com.jtarcio.closetrental.modules.catalogo.domain.ports.ProdutoRepositoryPort;
+import com.jtarcio.closetrental.modules.estoque.application.EstoqueService;
+import com.jtarcio.closetrental.modules.estoque.domain.model.MovimentacaoEstoque;
+import com.jtarcio.closetrental.modules.estoque.domain.model.TipoMovimentacao;
 import com.jtarcio.closetrental.modules.locacoes.application.RegistrarRetiradaService;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.Locacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
@@ -22,6 +25,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,6 +35,7 @@ class RegistrarRetiradaServiceTest {
 
     @Mock private LocacaoRepositoryPort locacaoPort;
     @Mock private ProdutoRepositoryPort produtoPort;
+    @Mock private EstoqueService estoqueService;
 
     @InjectMocks
     private RegistrarRetiradaService service;
@@ -50,21 +56,27 @@ class RegistrarRetiradaServiceTest {
         locacaoReservada.setStatus(StatusLocacao.RESERVADO);
         locacaoReservada.setDataInicio(LocalDate.now());
         locacaoReservada.setDataFim(LocalDate.now().plusDays(3));
+
+        MovimentacaoEstoque movStub = new MovimentacaoEstoque(10L, 1L, TipoMovimentacao.SAIDA, "stub", "sistema");
+        lenient().when(estoqueService.registrarSaida(anyLong(), anyLong(), anyString())).thenReturn(movStub);
     }
 
     @Test
-    @DisplayName("deve registrar retirada e marcar produto indisponivel")
+    @DisplayName("deve registrar retirada, marcar produto indisponivel e registrar movimentacao de estoque")
     void deveRegistrarRetirada() {
+        MovimentacaoEstoque movMock = new MovimentacaoEstoque(10L, 1L, TipoMovimentacao.SAIDA, "Saida", "sistema");
         when(locacaoPort.buscarPorId(1L)).thenReturn(Optional.of(locacaoReservada));
         when(produtoPort.buscarPorId(10L)).thenReturn(Optional.of(produto));
         when(locacaoPort.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
         when(produtoPort.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(estoqueService.registrarSaida(anyLong(), anyLong(), anyString())).thenReturn(movMock);
 
         Locacao resultado = service.executar(1L);
 
         assertThat(resultado.getStatus()).isEqualTo(StatusLocacao.RETIRADO);
         assertThat(resultado.getRetiradaAt()).isNotNull();
         verify(produtoPort).salvar(argThat(p -> !p.isDisponivel()));
+        verify(estoqueService).registrarSaida(10L, 1L, "sistema");
     }
 
     @Test

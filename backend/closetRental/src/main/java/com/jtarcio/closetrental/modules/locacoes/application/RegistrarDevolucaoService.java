@@ -1,6 +1,7 @@
 package com.jtarcio.closetrental.modules.locacoes.application;
 
 import com.jtarcio.closetrental.modules.catalogo.domain.ports.ProdutoRepositoryPort;
+import com.jtarcio.closetrental.modules.estoque.application.EstoqueService;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.Locacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.ports.LocacaoRepositoryPort;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
  * 3. Calcula multa por atraso se devolucaoAt > dataFim
  * 4. Muda status para DEVOLVIDO
  * 5. Marca o produto como disponivel novamente
+ * 6. Registra movimentacao ENTRADA no estoque
  */
 @Slf4j
 @Service
@@ -32,6 +34,7 @@ public class RegistrarDevolucaoService {
 
     private final LocacaoRepositoryPort locacaoPort;
     private final ProdutoRepositoryPort produtoPort;
+    private final EstoqueService estoqueService;
 
     @Value("${app.locacao.percentual-multa-diaria:0.10}")
     private BigDecimal percentualMultaDiaria;
@@ -71,6 +74,10 @@ public class RegistrarDevolucaoService {
         }
 
         Locacao salva = locacaoPort.salvar(locacao);
+
+        // Registra movimentacao de estoque
+        estoqueService.registrarEntrada(locacao.getProdutoId(), locacaoId, "sistema");
+
         log.info("Devolucao registrada: locacaoId={}, produtoId={}, multa={}, devolucaoAt={}",
                 salva.getId(), salva.getProdutoId(), salva.getMulta(), salva.getDevolucaoAt());
         return salva;

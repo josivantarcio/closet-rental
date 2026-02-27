@@ -1,6 +1,7 @@
 package com.jtarcio.closetrental.modules.locacoes.application;
 
 import com.jtarcio.closetrental.modules.catalogo.domain.ports.ProdutoRepositoryPort;
+import com.jtarcio.closetrental.modules.estoque.application.EstoqueService;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.Locacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.ports.LocacaoRepositoryPort;
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
  * 2. Registra retiradaAt = agora
  * 3. Muda status para RETIRADO
  * 4. Marca o produto como indisponivel
+ * 5. Registra movimentacao SAIDA no estoque
  */
 @Slf4j
 @Service
@@ -29,6 +31,7 @@ public class RegistrarRetiradaService {
 
     private final LocacaoRepositoryPort locacaoPort;
     private final ProdutoRepositoryPort produtoPort;
+    private final EstoqueService estoqueService;
 
     @Transactional
     public Locacao executar(Long locacaoId) {
@@ -49,8 +52,11 @@ public class RegistrarRetiradaService {
 
         locacao.setRetiradaAt(LocalDateTime.now());
         locacao.setStatus(StatusLocacao.RETIRADO);
-
         Locacao salva = locacaoPort.salvar(locacao);
+
+        // Registra movimentacao de estoque
+        estoqueService.registrarSaida(locacao.getProdutoId(), locacaoId, "sistema");
+
         log.info("Retirada registrada: locacaoId={}, produtoId={}, retiradaAt={}",
                 salva.getId(), salva.getProdutoId(), salva.getRetiradaAt());
         return salva;

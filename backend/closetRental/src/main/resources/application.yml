@@ -17,3 +17,8 @@ spring:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
+app:
+  locacao:
+    caucao-padrao: 100.00
+    percentual-multa-diaria: 0.10

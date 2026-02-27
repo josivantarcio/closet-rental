@@ -10,8 +10,22 @@ import java.time.LocalDate;
 
 public interface ProdutoRepositoryJpa extends JpaRepository<ProdutoEntity, Long> {
 
-    // TODO: incluir subquery de LocacaoEntity quando módulo de locações for implementado
-    @Query("SELECT p FROM ProdutoEntity p WHERE p.disponivel = true")
+    /**
+     * Busca produtos disponiveis no periodo informado.
+     * Exclui produtos que possuam locacoes RESERVADAS ou RETIRADAS com overlap no periodo.
+     * Complexidade: O(log n) com indices em produto_id, data_inicio, data_fim.
+     */
+    @Query("""
+        SELECT p FROM ProdutoEntity p
+        WHERE p.disponivel = true
+          AND NOT EXISTS (
+            SELECT 1 FROM LocacaoEntity l
+            WHERE l.produtoId = p.id
+              AND l.status IN ('RESERVADO', 'RETIRADO')
+              AND l.dataInicio < :dataFim
+              AND l.dataFim > :dataInicio
+          )
+        """)
     Page<ProdutoEntity> buscarDisponiveisNoPeriodo(
             @Param("dataInicio") LocalDate dataInicio,
             @Param("dataFim") LocalDate dataFim,

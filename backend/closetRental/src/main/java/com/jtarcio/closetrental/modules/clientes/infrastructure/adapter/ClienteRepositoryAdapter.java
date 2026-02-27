@@ -4,6 +4,7 @@ import com.jtarcio.closetrental.modules.clientes.domain.model.Cliente;
 import com.jtarcio.closetrental.modules.clientes.domain.ports.ClienteRepositoryPort;
 import com.jtarcio.closetrental.modules.clientes.infrastructure.mapper.ClienteMapper;
 import com.jtarcio.closetrental.modules.clientes.infrastructure.persistence.ClienteRepositoryJpa;
+import com.jtarcio.closetrental.modules.locacoes.infrastructure.persistence.LocacaoRepositoryJpa;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,7 @@ import java.util.Optional;
 public class ClienteRepositoryAdapter implements ClienteRepositoryPort {
 
     private final ClienteRepositoryJpa jpa;
+    private final LocacaoRepositoryJpa locacaoRepositoryJpa;
     private final ClienteMapper mapper;
 
     @Override
@@ -69,8 +71,6 @@ public class ClienteRepositoryAdapter implements ClienteRepositoryPort {
 
     @Override
     public boolean possuiLocacaoAtiva(Long clienteId) {
-        // Stub seguro: retorna false enquanto módulo locações não existe.
-        // TODO: Implementar query real quando LocacaoEntity for criada.
-        return false;
+        return locacaoRepositoryJpa.existeLocacaoAtivaParaCliente(clienteId);
     }
 }

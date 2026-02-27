@@ -4,6 +4,7 @@ import com.jtarcio.closetrental.modules.catalogo.domain.model.Produto;
 import com.jtarcio.closetrental.modules.catalogo.domain.ports.ProdutoRepositoryPort;
 import com.jtarcio.closetrental.modules.catalogo.infrastructure.mapper.ProdutoMapper;
 import com.jtarcio.closetrental.modules.catalogo.infrastructure.persistence.ProdutoRepositoryJpa;
+import com.jtarcio.closetrental.modules.locacoes.infrastructure.persistence.LocacaoRepositoryJpa;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,7 @@ import java.util.Optional;
 public class ProdutoRepositoryAdapter implements ProdutoRepositoryPort {
 
     private final ProdutoRepositoryJpa jpaRepository;
+    private final LocacaoRepositoryJpa locacaoRepositoryJpa;
     private final ProdutoMapper mapper;
 
     @Override
@@ -46,7 +48,6 @@ public class ProdutoRepositoryAdapter implements ProdutoRepositoryPort {
 
     @Override
     public boolean existeEmLocacaoAtiva(Long id) {
-        // Será implementado quando o módulo de locações existir
-        return false;
+        return locacaoRepositoryJpa.existeLocacaoAtivaParaProduto(id);
     }
 }

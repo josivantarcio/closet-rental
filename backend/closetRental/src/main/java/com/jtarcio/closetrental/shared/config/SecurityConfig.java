@@ -70,6 +70,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/v1/pagamentos/*/estornar").hasRole("ADMIN")
                         .requestMatchers("/v1/pagamentos/**").hasAnyRole("ADMIN", "ATENDENTE", "CLIENTE")
 
+                        // Relatórios
+                        .requestMatchers("/v1/relatorios/**").hasAnyRole("ADMIN", "ATENDENTE")
+
                         // Qualquer outra rota exige autenticação
                         .anyRequest().authenticated()
                 )

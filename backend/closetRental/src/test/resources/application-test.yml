@@ -17,6 +17,12 @@ spring:
       enabled: false
 
 app:
+  jwt:
+    secret: 404D635166546A576E5A7234753778214125442A472D4B6150645367566B5970
+    expiration: 86400
   locacao:
     caucao-padrao: 100.00
     percentual-multa-diaria: 0.10
+  pagamento:
+    gateway:
+      taxa-falha: 0.10

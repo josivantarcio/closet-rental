@@ -1,31 +1,57 @@
 package com.jtarcio.closetrental.shared.config;
 
+import com.jtarcio.closetrental.shared.security.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/**
+ * Configuração de segurança JWT stateless.
+ *
+ * Fluxo:
+ * 1. POST /v1/auth/login → retorna Bearer token
+ * 2. Demais endpoints exigem header: Authorization: Bearer <token>
+ * 3. JwtAuthenticationFilter valida o token e popula o SecurityContext
+ * 4. Sessão HTTP desabilitada (STATELESS)
+ *
+ * UserDetailsService e PasswordEncoder definidos em InMemoryUserDetailsConfig
+ * para evitar dependência circular com JwtAuthenticationFilter.
+ */
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final UserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Login público
+                        .requestMatchers(HttpMethod.POST, "/v1/auth/login").permitAll()
+
                         // Swagger e docs públicos
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 
-                        // Catálogo
+                        // Catálogo — leitura pública, escrita restrita
                         .requestMatchers(HttpMethod.GET, "/v1/catalogo/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/catalogo/**").hasAnyRole("ADMIN", "ATENDENTE")
                         .requestMatchers(HttpMethod.PUT, "/v1/catalogo/**").hasAnyRole("ADMIN", "ATENDENTE")
@@ -40,42 +66,31 @@ public class SecurityConfig {
                         // Estoque
                         .requestMatchers("/v1/estoque/**").hasAnyRole("ADMIN", "ATENDENTE")
 
-                        // Pagamentos
+                        // Pagamentos — estorno apenas ADMIN
+                        .requestMatchers(HttpMethod.POST, "/v1/pagamentos/*/estornar").hasRole("ADMIN")
                         .requestMatchers("/v1/pagamentos/**").hasAnyRole("ADMIN", "ATENDENTE", "CLIENTE")
 
-                        // Qualquer outra requisição precisa autenticação
+                        // Qualquer outra rota exige autenticação
                         .anyRequest().authenticated()
                 )
-                .httpBasic(basic -> {});
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) ->
+                                response.sendError(401, "Nao autenticado")))
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder().encode("admin123"))
-                .roles("ADMIN")
-                .build();
-
-        UserDetails atendente = User.builder()
-                .username("atendente")
-                .password(passwordEncoder().encode("atendente123"))
-                .roles("ATENDENTE")
-                .build();
-
-        UserDetails cliente = User.builder()
-                .username("cliente")
-                .password(passwordEncoder().encode("cliente123"))
-                .roles("CLIENTE")
-                .build();
-
-        return new InMemoryUserDetailsManager(admin, atendente, cliente);
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder);
+        return provider;
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 }

@@ -1,0 +1,26 @@
+package com.jtarcio.closetrental.shared.security;
+
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+
+import java.util.Optional;
+
+/**
+ * Implementação de AuditorAware que lê o usuário autenticado do SecurityContext.
+ * Com JWT, o principal é o username extraído do token (campo "sub").
+ * Substitui o bean padrão e alimenta @CreatedBy/@LastModifiedBy nas entidades JPA.
+ */
+@Component("auditorAware")
+public class JwtAuditorAware implements AuditorAware<String> {
+
+    @Override
+    public Optional<String> getCurrentAuditor() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return Optional.of("sistema");
+        }
+        return Optional.of(auth.getName());
+    }
+}

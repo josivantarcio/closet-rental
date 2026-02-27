@@ -1,0 +1,83 @@
+# =============================================================================
+# docker-compose.yml — Ambiente de desenvolvimento local
+#
+# Uso:
+#   cp .env.example .env
+#   docker compose up -d
+#
+# ATENÇÃO: Este arquivo é para desenvolvimento.
+# Em produção, use um banco gerenciado externo (RDS, Supabase, etc.)
+# =============================================================================
+
+name: closet-rental
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL 16 Alpine
+  # Volume nomeado garante persistência entre restarts
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: closet-rental-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - closet-rental-network
+    healthcheck:
+      # pg_isready: O(1) — verifica se o PostgreSQL aceita conexões
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # Aplicação Spring Boot
+  # Sobe apenas após o banco estar healthy
+  # Flyway executa as migrações automaticamente na inicialização
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: ./backend/closetRental
+      dockerfile: Dockerfile
+    container_name: closet-rental-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Datasource — sobrescreve application.yml via Spring Environment
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_JPA_SHOW_SQL: "false"
+      # JWT
+      APP_JWT_SECRET: ${JWT_SECRET}
+      APP_JWT_EXPIRATION: ${JWT_EXPIRATION:-86400}
+      # Regras de negócio
+      APP_LOCACAO_CAUCAO_PADRAO: ${CAUCAO_PADRAO:-100.00}
+      APP_LOCACAO_PERCENTUAL_MULTA_DIARIA: ${PERCENTUAL_MULTA_DIARIA:-0.10}
+      APP_PAGAMENTO_GATEWAY_TAXA_FALHA: ${TAXA_FALHA_GATEWAY:-0.10}
+      # Desabilitar DevTools em container
+      SPRING_DEVTOOLS_RESTART_ENABLED: "false"
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    networks:
+      - closet-rental-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  closet-rental-network:
+    driver: bridge

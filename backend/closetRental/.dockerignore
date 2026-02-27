@@ -1,0 +1,44 @@
+# =============================================================================
+# .dockerignore — backend/closetRental/
+# Reduz o contexto de build enviado ao Docker daemon
+# =============================================================================
+
+# Artefatos de build — gerados dentro do container, não do host
+target/
+
+# Controle de versão
+.git/
+.gitignore
+.gitattributes
+
+# IDEs e editores
+.idea/
+.vscode/
+*.iws
+*.iml
+*.ipr
+.classpath
+.project
+.settings/
+.factorypath
+*.swp
+*.swo
+
+# Documentação
+*.md
+HELP.md
+
+# Arquivos de ambiente local (nunca incluir no contexto Docker)
+.env
+.env.*
+
+# Logs
+*.log
+logs/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Relatórios de teste
+surefire-reports/

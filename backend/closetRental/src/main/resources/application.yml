@@ -22,3 +22,6 @@ app:
   locacao:
     caucao-padrao: 100.00
     percentual-multa-diaria: 0.10
+  pagamento:
+    gateway:
+      taxa-falha: 0.10

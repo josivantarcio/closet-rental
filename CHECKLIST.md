@@ -1,6 +1,6 @@
 # CHECKLIST COMPLETO — Sistema Closet Rental (Atelier)
-> Loja de Aluguel de Roupas & Vestidos | Última atualização: 2026-02-27
-> Progresso global: ~80% (Backend) | Frontend: 0%
+> Loja de Aluguel de Roupas & Vestidos | Última atualização: 2026-02-28
+> Progresso global: ~95% (Backend) | Frontend: em andamento
 
 ---
 

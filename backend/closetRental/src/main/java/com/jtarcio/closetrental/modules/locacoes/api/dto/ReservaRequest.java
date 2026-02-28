@@ -1,6 +1,6 @@
 package com.jtarcio.closetrental.modules.locacoes.api.dto;
 
-import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 
@@ -19,11 +19,11 @@ public record ReservaRequest(
         Long produtoId,
 
         @NotNull(message = "dataInicio e obrigatoria")
-        @Future(message = "dataInicio deve ser uma data futura")
+        @FutureOrPresent(message = "dataInicio nao pode ser uma data passada")
         LocalDate dataInicio,
 
         @NotNull(message = "dataFim e obrigatoria")
-        @Future(message = "dataFim deve ser uma data futura")
+        @FutureOrPresent(message = "dataFim nao pode ser uma data passada")
         LocalDate dataFim,
 
         @PositiveOrZero(message = "caucao nao pode ser negativa")

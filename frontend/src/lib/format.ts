@@ -10,7 +10,8 @@ export const formatDate = (dateStr: string) =>
 export const formatDateTime = (dateStr: string) =>
   format(parseISO(dateStr), "dd/MM/yyyy HH:mm", { locale: ptBR });
 
-export const formatDocumento = (doc: string) => {
+export const formatDocumento = (doc: string | null | undefined) => {
+  if (!doc) return "—";
   const digits = doc.replace(/\D/g, "");
   if (digits.length === 11) {
     // CPF: 000.000.000-00

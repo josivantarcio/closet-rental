@@ -54,6 +54,18 @@ describe('formatDocumento', () => {
   it('strips non-digit characters before formatting', () => {
     expect(formatDocumento('123.456.789-01')).toBe('123.456.789-01')
   })
+
+  it('returns "—" for null', () => {
+    expect(formatDocumento(null)).toBe('—')
+  })
+
+  it('returns "—" for undefined', () => {
+    expect(formatDocumento(undefined)).toBe('—')
+  })
+
+  it('returns "—" for empty string', () => {
+    expect(formatDocumento('')).toBe('—')
+  })
 })
 
 describe('metodoPagamentoLabel', () => {

@@ -31,6 +31,7 @@ export interface ProdutoResponse {
   nome: string;
   categoria: CategoriaProduto;
   valorDiaria: number;
+  codigo?: string;
   disponivel: boolean;
   createdBy: string;
 }
@@ -39,6 +40,8 @@ export interface ProdutoRequest {
   nome: string;
   categoria: CategoriaProduto;
   valorDiaria: number;
+  codigo?: string;
+  disponivel?: boolean;
 }
 
 // --- Clientes ---

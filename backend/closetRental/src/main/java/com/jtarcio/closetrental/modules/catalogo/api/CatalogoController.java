@@ -96,7 +96,8 @@ public class CatalogoController {
         produto.setNome(request.nome());
         produto.setCategoria(request.categoria());
         produto.setValorDiaria(request.valorDiaria());
-        produto.setDisponivel(request.disponivel());
+        produto.setCodigo(request.codigo());
+        produto.setDisponivel(request.disponivel() != null ? request.disponivel() : true);
         return produto;
     }
 
@@ -106,6 +107,7 @@ public class CatalogoController {
                 produto.getNome(),
                 produto.getCategoria(),
                 produto.getValorDiaria(),
+                produto.getCodigo(),
                 produto.isDisponivel(),
                 produto.getCreatedBy(),
                 produto.getCreatedAt()

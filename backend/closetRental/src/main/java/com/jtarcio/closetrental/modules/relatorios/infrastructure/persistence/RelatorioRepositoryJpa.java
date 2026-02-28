@@ -68,19 +68,20 @@ public interface RelatorioRepositoryJpa extends JpaRepository<LocacaoEntity, Lon
      * Soma e contagem de pagamentos APROVADOS no mês/ano informado.
      * Usa: idx_pagamentos_criado_em + idx_pagamentos_status → O(log n)
      */
-    @Query("""
+    @Query(value = """
         SELECT SUM(p.valor) AS totalReceita, COUNT(p.id) AS totalPagamentos
-        FROM PagamentoEntity p
+        FROM pagamentos p
         WHERE p.status = 'APROVADO'
-          AND FUNCTION('MONTH', p.criadoEm) = :mes
-          AND FUNCTION('YEAR',  p.criadoEm) = :ano
-        """)
+          AND EXTRACT(MONTH FROM p.criado_em) = :mes
+          AND EXTRACT(YEAR  FROM p.criado_em) = :ano
+        """, nativeQuery = true)
     FaturamentoProjection findFaturamento(@Param("mes") int mes, @Param("ano") int ano);
 
     /**
      * Ranking de produtos por número de locações (qualquer status exceto CANCELADO),
      * com JOIN em ProdutoEntity para obter nome e categoria.
-     * Complexidade: O(n log n) no GROUP BY, mas limitado pelo parâmetro limite.
+     * Paginado via Pageable para evitar LIMIT no JPQL (não suportado em todas as versões).
+     * Complexidade: O(n log n) no GROUP BY, limitado pelo PageRequest.
      */
     @Query("""
         SELECT new com.jtarcio.closetrental.modules.relatorios.api.dto.PecaMaisAlugadaResponse(
@@ -91,9 +92,8 @@ public interface RelatorioRepositoryJpa extends JpaRepository<LocacaoEntity, Lon
         WHERE l.status <> 'CANCELADO'
         GROUP BY p.id, p.nome, p.categoria
         ORDER BY COUNT(l.id) DESC
-        LIMIT :limite
         """)
-    List<PecaMaisAlugadaResponse> findPecasMaisAlugadas(@Param("limite") int limite);
+    Page<PecaMaisAlugadaResponse> findPecasMaisAlugadas(Pageable pageable);
 
     /**
      * Locações RETIRADAS com dataFim anterior a hoje (atrasos não devolvidos).

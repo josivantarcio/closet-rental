@@ -8,6 +8,7 @@ public record ProdutoResponse(
         String nome,
         String categoria,
         BigDecimal valorDiaria,
+        String codigo,
         boolean disponivel,
         String createdBy,
         LocalDateTime createdAt

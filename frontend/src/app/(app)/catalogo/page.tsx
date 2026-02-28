@@ -37,12 +37,14 @@ const schema = z.object({
   nome: z.string().min(2, "Nome deve ter ao menos 2 caracteres"),
   categoria: z.enum(["VESTIDO", "TERNO", "ACESSORIO", "CALCADO", "OUTRO"] as const),
   valorDiaria: z.string().refine((v) => !isNaN(Number(v)) && Number(v) > 0, "Valor deve ser positivo"),
+  codigo: z.string().optional(),
 });
 
 type FormData = {
   nome: string;
   categoria: CategoriaProduto;
   valorDiaria: string;
+  codigo?: string;
 };
 
 const categorias: CategoriaProduto[] = ["VESTIDO", "TERNO", "ACESSORIO", "CALCADO", "OUTRO"];
@@ -98,7 +100,7 @@ export default function CatalogoPage() {
 
   const openCreate = () => {
     setEditingProduto(null);
-    reset({ nome: "", valorDiaria: "" });
+    reset({ nome: "", valorDiaria: "", codigo: "" });
     setDialogOpen(true);
   };
 
@@ -108,12 +110,18 @@ export default function CatalogoPage() {
       nome: produto.nome,
       categoria: produto.categoria as CategoriaProduto,
       valorDiaria: String(produto.valorDiaria),
+      codigo: produto.codigo ?? "",
     });
     setDialogOpen(true);
   };
 
   const onSubmit = (data: FormData) => {
-    const payload = { ...data, valorDiaria: Number(data.valorDiaria) };
+    const payload = {
+      nome: data.nome,
+      categoria: data.categoria,
+      valorDiaria: Number(data.valorDiaria),
+      codigo: data.codigo || undefined,
+    };
     if (editingProduto) {
       atualizarMutation.mutate({ id: editingProduto.id, data: payload });
     } else {
@@ -169,6 +177,11 @@ export default function CatalogoPage() {
                         <p className="font-medium text-sm leading-tight truncate">{produto.nome}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {categoriaLabel[produto.categoria] ?? produto.categoria}
+                          {produto.codigo && (
+                            <span className="ml-1.5 font-mono bg-muted px-1 rounded text-[10px]">
+                              {produto.codigo}
+                            </span>
+                          )}
                         </p>
                       </div>
                       <DisponibilidadeBadge disponivel={produto.disponivel} />
@@ -244,6 +257,19 @@ export default function CatalogoPage() {
               <Label htmlFor="nome">Nome</Label>
               <Input id="nome" placeholder="Ex: Vestido Longo Azul" {...register("nome")} />
               {errors.nome && <p className="text-xs text-destructive">{errors.nome.message}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="codigo">
+                Código <span className="text-muted-foreground text-xs">(opcional)</span>
+              </Label>
+              <Input
+                id="codigo"
+                placeholder="Ex: VES-001-P"
+                {...register("codigo")}
+              />
+              <p className="text-xs text-muted-foreground">
+                Identifica o modelo — útil quando há múltiplos tamanhos
+              </p>
             </div>
             <div className="space-y-1.5">
               <Label>Categoria</Label>

@@ -17,6 +17,7 @@ public record ProdutoRequest(
         @DecimalMin(value = "0.0", message = "Valor da diária não pode ser negativo")
         BigDecimal valorDiaria,
 
-        @NotNull(message = "Disponibilidade é obrigatória")
+        String codigo,
+
         Boolean disponivel
 ) {}

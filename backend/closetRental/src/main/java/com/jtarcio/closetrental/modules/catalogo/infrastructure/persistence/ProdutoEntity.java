@@ -34,6 +34,9 @@ public class ProdutoEntity {
     @Column(name = "valor_diaria", nullable = false, precision = 10, scale = 2)
     private BigDecimal valorDiaria;
 
+    @Column(length = 50, unique = true)
+    private String codigo;
+
     @Column(nullable = false)
     private boolean disponivel;
 

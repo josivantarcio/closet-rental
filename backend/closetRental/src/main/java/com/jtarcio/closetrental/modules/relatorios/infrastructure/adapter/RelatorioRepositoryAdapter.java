@@ -10,6 +10,7 @@ import com.jtarcio.closetrental.modules.relatorios.infrastructure.persistence.Re
 import com.jtarcio.closetrental.modules.relatorios.infrastructure.persistence.projection.FaturamentoProjection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +44,7 @@ public class RelatorioRepositoryAdapter implements RelatorioRepositoryPort {
 
     @Override
     public List<PecaMaisAlugadaResponse> pecasMaisAlugadas(int limite) {
-        return jpa.findPecasMaisAlugadas(limite);
+        return jpa.findPecasMaisAlugadas(PageRequest.of(0, limite)).getContent();
     }
 
     @Override

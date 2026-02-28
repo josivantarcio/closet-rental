@@ -35,7 +35,6 @@ import { locacoesService } from "@/lib/services/locacoes.service";
 import { clientesService } from "@/lib/services/clientes.service";
 import { catalogoService } from "@/lib/services/catalogo.service";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { useAuthStore } from "@/store/auth.store";
 import type { StatusLocacao } from "@/types";
 
 const schema = z.object({
@@ -62,7 +61,6 @@ export default function LocacoesPage() {
   const [produtoId, setProdutoId] = useState<number | null>(null);
   const [clienteError, setClienteError] = useState(false);
   const [produtoError, setProdutoError] = useState(false);
-  const { user } = useAuthStore();
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -108,7 +106,6 @@ export default function LocacoesPage() {
         produtoId: produtoId!,
         dataInicio: data.dataInicio,
         dataFim: data.dataFim,
-        operador: user?.username ?? "sistema",
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["locacoes"] });

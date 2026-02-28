@@ -76,8 +76,9 @@ export interface LocacaoResponse {
   caucao: number;
   valorTotal: number;
   multaAtraso: number | null;
+  multa?: number | null;
   status: StatusLocacao;
-  operador: string;
+  operador?: string;
 }
 
 export interface CriarReservaRequest {
@@ -85,7 +86,8 @@ export interface CriarReservaRequest {
   produtoId: number;
   dataInicio: string;
   dataFim: string;
-  operador: string;
+  caucao?: number;
+  observacoes?: string;
 }
 
 // --- Pagamentos ---

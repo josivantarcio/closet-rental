@@ -1,18 +1,18 @@
 server:
-  port: 8080
+  port: ${APP_PORT:8080}
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/aluguel
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:aluguel}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
   jpa:
     hibernate:
       ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
-    show-sql: true
+    show-sql: ${SHOW_SQL:true}
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -31,13 +31,13 @@ springdoc:
 
 app:
   cors:
-    allowed-origins: http://localhost:3000
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
   jwt:
-    secret: 404D635166546A576E5A7234753778214125442A472D4B6150645367566B5970
-    expiration: 86400
+    secret: ${JWT_SECRET:404D635166546A576E5A7234753778214125442A472D4B6150645367566B5970}
+    expiration: ${JWT_EXPIRATION:86400}
   locacao:
-    caucao-padrao: 100.00
-    percentual-multa-diaria: 0.10
+    caucao-padrao: ${CAUCAO_PADRAO:100.00}
+    percentual-multa-diaria: ${PERCENTUAL_MULTA_DIARIA:0.10}
   pagamento:
     gateway:
-      taxa-falha: 0.10
+      taxa-falha: ${TAXA_FALHA_GATEWAY:0.10}

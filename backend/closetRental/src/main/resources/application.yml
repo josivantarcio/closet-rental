@@ -30,6 +30,8 @@ springdoc:
     path: /v3/api-docs
 
 app:
+  cors:
+    allowed-origins: http://localhost:3000
   jwt:
     secret: 404D635166546A576E5A7234753778214125442A472D4B6150645367566B5970
     expiration: 86400

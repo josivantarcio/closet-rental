@@ -104,8 +104,10 @@ export default function ClientesPage() {
 
   const openEdit = (c: ClienteResponse) => {
     setEditingCliente(c);
-    reset({ nome: c.nome, email: c.email, telefone: c.telefone, documento: c.documento });
     setDialogOpen(true);
+    clientesService.buscarPorId(c.id).then((full) => {
+      reset({ nome: full.nome, email: full.email, telefone: full.telefone, documento: full.documento ?? "" });
+    });
   };
 
   const onSubmit = (data: FormData) => {

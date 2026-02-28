@@ -28,23 +28,17 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LocacaoBadge } from "@/components/shared/status-badge";
+import { Combobox, type ComboboxItem } from "@/components/shared/combobox";
 import { locacoesService } from "@/lib/services/locacoes.service";
+import { clientesService } from "@/lib/services/clientes.service";
+import { catalogoService } from "@/lib/services/catalogo.service";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { useAuthStore } from "@/store/auth.store";
 import type { StatusLocacao } from "@/types";
 
 const schema = z.object({
-  clienteId: z.string().min(1, "ID do cliente obrigatório"),
-  produtoId: z.string().min(1, "ID do produto obrigatório"),
   dataInicio: z.string().min(1, "Data início obrigatória"),
   dataFim: z.string().min(1, "Data fim obrigatória"),
 });
@@ -64,6 +58,10 @@ export default function LocacoesPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusLocacao | "TODOS">("TODOS");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [clienteId, setClienteId] = useState<number | null>(null);
+  const [produtoId, setProdutoId] = useState<number | null>(null);
+  const [clienteError, setClienteError] = useState(false);
+  const [produtoError, setProdutoError] = useState(false);
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
 
@@ -73,6 +71,32 @@ export default function LocacoesPage() {
       locacoesService.listar(page, 20, statusFilter === "TODOS" ? undefined : statusFilter),
   });
 
+  const { data: clientesData, isLoading: clientesLoading } = useQuery({
+    queryKey: ["clientes-select"],
+    queryFn: () => clientesService.listar(0, 200),
+    enabled: dialogOpen,
+    staleTime: 60_000,
+  });
+
+  const { data: catalogoData, isLoading: catalogoLoading } = useQuery({
+    queryKey: ["catalogo-select"],
+    queryFn: () => catalogoService.listar(0, 200),
+    enabled: dialogOpen,
+    staleTime: 60_000,
+  });
+
+  const clienteItems: ComboboxItem[] = (clientesData?.content ?? []).map((c) => ({
+    id: c.id,
+    label: c.nome,
+    sublabel: c.documento,
+  }));
+
+  const produtoItems: ComboboxItem[] = (catalogoData?.content ?? []).map((p) => ({
+    id: p.id,
+    label: p.nome,
+    sublabel: p.disponivel ? "Disponível" : "Indisponível",
+  }));
+
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
@@ -80,8 +104,8 @@ export default function LocacoesPage() {
   const criarMutation = useMutation({
     mutationFn: (data: FormData) =>
       locacoesService.criarReserva({
-        clienteId: Number(data.clienteId),
-        produtoId: Number(data.produtoId),
+        clienteId: clienteId!,
+        produtoId: produtoId!,
         dataInicio: data.dataInicio,
         dataFim: data.dataFim,
         operador: user?.username ?? "sistema",
@@ -91,6 +115,8 @@ export default function LocacoesPage() {
       toast.success("Reserva criada com sucesso!");
       setDialogOpen(false);
       reset();
+      setClienteId(null);
+      setProdutoId(null);
     },
     onError: () => toast.error("Erro ao criar reserva. Verifique disponibilidade."),
   });
@@ -122,10 +148,30 @@ export default function LocacoesPage() {
     onError: () => toast.error("Não é possível cancelar esta locação."),
   });
 
+  const openDialog = () => {
+    reset();
+    setClienteId(null);
+    setProdutoId(null);
+    setClienteError(false);
+    setProdutoError(false);
+    setDialogOpen(true);
+  };
+
+  const onSubmit = (data: FormData) => {
+    const hasClienteError = !clienteId;
+    const hasProdutoError = !produtoId;
+    setClienteError(hasClienteError);
+    setProdutoError(hasProdutoError);
+    if (hasClienteError || hasProdutoError) return;
+    criarMutation.mutate(data);
+  };
+
   const filtered = data?.content.filter((l) =>
     String(l.id).includes(search) ||
     String(l.clienteId).includes(search) ||
-    String(l.produtoId).includes(search)
+    String(l.produtoId).includes(search) ||
+    (l.clienteNome?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
+    (l.produtoNome?.toLowerCase().includes(search.toLowerCase()) ?? false)
   );
 
   return (
@@ -153,7 +199,7 @@ export default function LocacoesPage() {
               ))}
             </TabsList>
           </Tabs>
-          <Button onClick={() => { reset(); setDialogOpen(true); }} className="gap-2 ml-auto">
+          <Button onClick={openDialog} className="gap-2 ml-auto">
             <Plus className="h-4 w-4" />
             Nova Reserva
           </Button>
@@ -193,8 +239,8 @@ export default function LocacoesPage() {
                     <TableCell className="font-mono text-xs text-muted-foreground">
                       #{loc.id}
                     </TableCell>
-                    <TableCell className="text-sm">Cliente #{loc.clienteId}</TableCell>
-                    <TableCell className="text-sm">Produto #{loc.produtoId}</TableCell>
+                    <TableCell className="text-sm">{loc.clienteNome ?? `Cliente #${loc.clienteId}`}</TableCell>
+                    <TableCell className="text-sm">{loc.produtoNome ?? `Produto #${loc.produtoId}`}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {formatDate(loc.dataInicio)} → {formatDate(loc.dataFim)}
                     </TableCell>
@@ -269,18 +315,28 @@ export default function LocacoesPage() {
           <DialogHeader>
             <DialogTitle className="font-display">Nova Reserva</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit((d) => criarMutation.mutate(d))} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="clienteId">ID do Cliente</Label>
-                <Input id="clienteId" type="number" placeholder="1" {...register("clienteId")} />
-                {errors.clienteId && <p className="text-xs text-destructive">{errors.clienteId.message}</p>}
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="produtoId">ID do Produto</Label>
-                <Input id="produtoId" type="number" placeholder="1" {...register("produtoId")} />
-                {errors.produtoId && <p className="text-xs text-destructive">{errors.produtoId.message}</p>}
-              </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Cliente</Label>
+              <Combobox
+                items={clienteItems}
+                value={clienteId}
+                onSelect={(id) => { setClienteId(id); setClienteError(false); }}
+                placeholder="Selecionar cliente..."
+                loading={clientesLoading}
+              />
+              {clienteError && <p className="text-xs text-destructive">Cliente obrigatório</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label>Produto</Label>
+              <Combobox
+                items={produtoItems}
+                value={produtoId}
+                onSelect={(id) => { setProdutoId(id); setProdutoError(false); }}
+                placeholder="Selecionar produto..."
+                loading={catalogoLoading}
+              />
+              {produtoError && <p className="text-xs text-destructive">Produto obrigatório</p>}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">

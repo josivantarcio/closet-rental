@@ -2,15 +2,10 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Loader2, RotateCcw } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -21,13 +16,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -37,45 +25,25 @@ import {
 import { PagamentoBadge } from "@/components/shared/status-badge";
 import { pagamentosService } from "@/lib/services/pagamentos.service";
 import { formatCurrency, formatDateTime, metodoPagamentoLabel } from "@/lib/format";
-import type { MetodoPagamento } from "@/types";
+import type { StatusPagamento } from "@/types";
 
-const schema = z.object({
-  locacaoId: z.string().min(1, "ID da locação obrigatório"),
-  valor: z.string().min(1, "Valor obrigatório"),
-  metodo: z.enum(["PIX", "CARTAO_CREDITO", "CARTAO_DEBITO", "DINHEIRO"] as const),
-});
-
-type FormData = z.infer<typeof schema>;
-
-const metodos: MetodoPagamento[] = ["PIX", "CARTAO_CREDITO", "CARTAO_DEBITO", "DINHEIRO"];
+const statusOptions: { value: StatusPagamento | "TODOS"; label: string }[] = [
+  { value: "TODOS", label: "Todos" },
+  { value: "APROVADO", label: "Aprovado" },
+  { value: "PENDENTE", label: "Pendente" },
+  { value: "FALHA", label: "Falha" },
+  { value: "ESTORNADO", label: "Estornado" },
+];
 
 export default function PagamentosPage() {
   const [page, setPage] = useState(0);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusPagamento | "TODOS">("TODOS");
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["pagamentos", page],
-    queryFn: () => pagamentosService.listar(page, 20),
-  });
-
-  const { register, handleSubmit, setValue, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
-    resolver: zodResolver(schema),
-  });
-
-  const processarMutation = useMutation({
-    mutationFn: pagamentosService.processar,
-    onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ["pagamentos"] });
-      if (result.status === "APROVADO") {
-        toast.success("Pagamento aprovado!");
-      } else {
-        toast.error("Pagamento falhou. Tente outro método.");
-      }
-      setDialogOpen(false);
-      reset();
-    },
-    onError: () => toast.error("Erro ao processar pagamento."),
+    queryKey: ["pagamentos", page, statusFilter],
+    queryFn: () =>
+      pagamentosService.listar(page, 20, statusFilter === "TODOS" ? undefined : statusFilter),
   });
 
   const estornarMutation = useMutation({
@@ -89,14 +57,23 @@ export default function PagamentosPage() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <Header title="Pagamentos" subtitle="Processamento e histórico" />
+      <Header title="Pagamentos" subtitle="Histórico de pagamentos" />
 
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        <div className="flex justify-end">
-          <Button onClick={() => { reset(); setDialogOpen(true); }} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Processar Pagamento
-          </Button>
+        <div className="flex items-center gap-3">
+          <Select
+            value={statusFilter}
+            onValueChange={(v) => { setStatusFilter(v as StatusPagamento | "TODOS"); setPage(0); }}
+          >
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="rounded-lg border border-border overflow-hidden">
@@ -167,45 +144,6 @@ export default function PagamentosPage() {
           </div>
         )}
       </div>
-
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="font-display">Processar Pagamento</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit((d) => processarMutation.mutate({ locacaoId: Number(d.locacaoId), valor: Number(d.valor), metodo: d.metodo }))} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="locacaoId">ID da Locação</Label>
-              <Input id="locacaoId" type="number" placeholder="1" {...register("locacaoId")} />
-              {errors.locacaoId && <p className="text-xs text-destructive">{errors.locacaoId.message}</p>}
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="valor">Valor (R$)</Label>
-              <Input id="valor" type="number" step="0.01" placeholder="0.00" {...register("valor")} />
-              {errors.valor && <p className="text-xs text-destructive">{errors.valor.message}</p>}
-            </div>
-            <div className="space-y-1.5">
-              <Label>Método de Pagamento</Label>
-              <Select onValueChange={(v) => setValue("metodo", v as MetodoPagamento)}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  {metodos.map((m) => (
-                    <SelectItem key={m} value={m}>{metodoPagamentoLabel[m]}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.metodo && <p className="text-xs text-destructive">{errors.metodo.message}</p>}
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button type="submit" disabled={isSubmitting || processarMutation.isPending}>
-                {(isSubmitting || processarMutation.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Processar
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -102,7 +102,7 @@ export default function LocacaoDetailPage({
   const jaTemPagamentoAprovado = pagamentos?.content.some((p) => p.status === "APROVADO") ?? false;
   const podeProcessarPagamento =
     locacao &&
-    (locacao.status === "RESERVADO" || locacao.status === "RETIRADO") &&
+    (locacao.status === "RETIRADO" || locacao.status === "DEVOLVIDO") &&
     !jaTemPagamentoAprovado;
 
   const valorPagamento = locacao

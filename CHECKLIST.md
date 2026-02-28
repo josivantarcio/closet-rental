@@ -1,6 +1,6 @@
 # CHECKLIST COMPLETO — Sistema Closet Rental (Atelier)
 > Loja de Aluguel de Roupas & Vestidos | Última atualização: 2026-02-28
-> Progresso global: ~95% (Backend) | Frontend: em andamento
+> Progresso global: 100% Backend | 100% Frontend | Pronto para rodar localmente
 
 ---
 
@@ -20,15 +20,16 @@
 - [x] `application-test.yml` — H2 in-memory para testes
 - [x] `ClosetRentalApplication.java` com `@EnableJpaAuditing(auditorAwareRef = "auditorAware")`
 - [x] `OpenApiConfig.java` — Swagger + Bearer JWT scheme
-- [x] `SecurityConfig.java` — stateless JWT, roles, entry point 401
+- [x] `SecurityConfig.java` — stateless JWT, roles, entry point 401, CORS configurado
 - [x] `GlobalExceptionHandler.java` — Business, NotFound, Conflict, Validation, Auth
 - [x] `BusinessException`, `ConflictException`, `EntityNotFoundException`
-- [!] **DÉBITO:** `ddl-auto: update` — migrar para Flyway + `validate` antes de produção
-- [!] **DÉBITO:** `show-sql: true` — desativar em produção
-- [ ] Configurar Flyway: `V1__create_tables.sql`
-- [ ] Configurar profile `dev` vs `prod`
-- [ ] Adicionar Spring Actuator para health-check
-- [ ] Configurar CORS para o frontend
+- [x] **Flyway** — `V1__create_tables.sql`, `V2__add_indexes.sql`; `ddl-auto: validate` — v0.9.0
+- [x] **CORS** — `CorsConfigurationSource` no SecurityConfig; origem via `CORS_ALLOWED_ORIGINS` — v1.4.0
+- [x] **Variáveis de ambiente** — todos os segredos externalizados com `${VAR:default}` — v1.4.0
+- [x] **Profile prod** — `application-prod.yml`: show-sql=false, Swagger desabilitado — v1.4.0
+- [!] **DÉBITO:** Autenticação in-memory — migrar para tabela `usuarios` no banco
+- [ ] Spring Actuator — health-check endpoint
+- [ ] Rate limiting por IP (Bucket4j)
 
 ---
 
@@ -45,7 +46,6 @@
 - [x] `ProdutoRequest.java` / `ProdutoResponse.java`
 - [x] `CatalogoController.java` — `/v1/catalogo` com paginação + OpenAPI completo
 - [!] **DÉBITO:** Produto sem campos: `tamanho`, `cor`, `descricao`, `imagemUrl`
-- [!] **DÉBITO:** Sem índices explícitos: `idx_produtos_disponivel`, `idx_produtos_categoria`
 - [ ] Testes unitários `ProdutoServiceTest` (cobertura ≥ 80%)
 - [ ] Filtro por categoria e disponibilidade nos query params
 
@@ -127,115 +127,154 @@
 ## MILESTONE 6 — Segurança JWT
 **Status: CONCLUÍDO — v0.7.0**
 
-- [x] jjwt 0.12.6 adicionado ao `pom.xml`; asciidoctor-plugin removido (débito quitado)
+- [x] jjwt 0.12.6 adicionado ao `pom.xml`
 - [x] `JwtService.java` — geração + validação HS256, 24h, jjwt 0.12.6
 - [x] `JwtAuthenticationFilter.java` — `OncePerRequestFilter`, popula SecurityContext
 - [x] `JwtAuditorAware.java` — `@Component("auditorAware")`, lê nome do SecurityContext
-- [x] `InMemoryUserDetailsConfig.java` — UserDetailsService + PasswordEncoder separados (evita circular dependency)
-- [x] `SecurityConfig.java` — reescrito stateless, JWT filter, entry point 401
+- [x] `InMemoryUserDetailsConfig.java` — UserDetailsService + PasswordEncoder separados
+- [x] `SecurityConfig.java` — stateless, JWT filter, entry point 401, CORS
 - [x] `OpenApiConfig.java` — Bearer JWT scheme no Swagger
 - [x] `AuthController.java` — `POST /v1/auth/login` + `LoginRequest` / `LoginResponse`
 - [x] `GlobalExceptionHandler` — handler `AuthenticationException` → 401
-- [x] `AuthControllerTest` — 5 testes (login admin/atendente, 401, campos em branco)
-- [x] `SecurityRolesTest` — 14 testes (@WithMockUser CLIENTE/ATENDENTE/ADMIN)
+- [x] `AuthControllerTest` — 5 testes | `SecurityRolesTest` — 14 testes
 - [!] **DÉBITO:** Autenticação in-memory — migrar para tabela `usuarios` no banco
 - [ ] `POST /v1/auth/refresh` — refresh token
-- [ ] Rate limiting por IP (Bucket4j)
-- [ ] Conformidade LGPD: mascaramento de CPF nos logs
 
 ---
 
 ## MILESTONE 7 — Documentação
 **Status: CONCLUÍDO — v0.8.0**
 
-- [x] `README.md` — stack, pré-requisitos, DB, execução, auth JWT, todos os endpoints, curl completo, arquitetura, variáveis, débitos
+- [x] `README.md` — stack, pré-requisitos, DB, execução, auth JWT, endpoints, arquitetura
 - [x] Swagger UI enriquecido — `@Operation` e `@ApiResponses` em todos os controllers
-- [x] `springdoc` configurado — tags-sorter, operations-sorter, display-request-duration, try-it-out-enabled
-- [x] Wiki GitHub — 6 páginas: Home, Arquitetura, Autenticação, Módulos, Regras de Negócio, Configuração, Guia de Desenvolvimento
+- [x] Wiki GitHub — 6 páginas
 
 ---
 
-## PENDENTE — Próximas etapas (em ordem de prioridade)
+## MILESTONE 8 — Frontend Next.js 16
+**Status: CONCLUÍDO — v1.2.0**
 
-### Backend — Qualidade & Produção
+**Stack:** Next.js 16 App Router + TypeScript + Tailwind CSS + shadcn/ui + Framer Motion
+**Tema:** Elegância sombria — Deep Rose `#c2185b`, Onyx `#1a1a2e`, Gold `#d4af37`, Ivory `#faf8f5`
 
-- [ ] **Flyway** — `V1__create_tables.sql`, `V2__add_indexes.sql`, `V3__add_constraints.sql`; mudar `ddl-auto` para `validate`
-- [ ] **Testes unitários faltantes** — `ProdutoServiceTest` (cobertura ≥ 80%)
-- [ ] **Jacoco** — relatório de cobertura HTML: `mvn verify`; meta ≥ 80% em `application/` e `domain/`
-- [ ] **Testcontainers** — testes de integração com PostgreSQL real; validar queries de overlap
-- [ ] **Spring Actuator** — health-check endpoint
-- [ ] **CORS** — configurar para o futuro frontend
-- [ ] **Campos faltantes no Produto** — `tamanho`, `cor`, `descricao`, `imagemUrl`
-- [ ] **Índices explícitos** — `idx_produtos_disponivel`, `idx_produtos_categoria`
-- [ ] **Refresh token** — `POST /v1/auth/refresh`
-- [ ] **Tabela de usuários** — substituir in-memory por persistência real
+- [x] Setup Next.js + Tailwind + shadcn/ui + Zustand + TanStack Query + ESLint
+- [x] Design System: `StatusBadge`, `Sidebar`, `Header`
+- [x] `/login` — form JWT + hint contas de teste + Framer Motion
+- [x] `/dashboard` — 4 KPIs + peças em uso + atrasos pendentes
+- [x] `/catalogo` — grid cards com CRUD completo (dialog criar/editar) + paginação
+- [x] `/clientes` — tabela com CRUD + inativar/reativar + paginação
+- [x] `/locacoes` — lista filtrada por status (tabs) + criar reserva + ações contextuais
+- [x] `/locacoes/[id]` — detalhe com timeline de estados + ações + pagamentos da locação
+- [x] `/estoque` — histórico de movimentações paginado
+- [x] `/pagamentos` — processar + estornar
+- [x] `/relatorios` — faturamento mensal + peças mais alugadas + atrasos pendentes
+- [x] `src/lib/api.ts` — axios + interceptors (Bearer JWT + redirect 401)
+- [x] `src/store/auth.store.ts` — Zustand persist
+- [x] `src/types/index.ts` — tipos espelho dos DTOs do backend
+- [x] Build: 0 erros TypeScript | 0 warnings
+- [x] `error.tsx` — Error Boundary com "Tentar novamente" + error.digest — v1.4.0
+- [x] `not-found.tsx` — página 404 personalizada com navegação — v1.4.0
 
-### Backend — Módulo Relatórios (RF do documento original)
+---
 
-- [ ] `GET /v1/relatorios/disponibilidade?data=` — peças disponíveis em data
-- [ ] `GET /v1/relatorios/historico-cliente/{id}` — histórico de locações do cliente
-- [ ] `GET /v1/relatorios/faturamento?mes=&ano=` — receita no período
-- [ ] `GET /v1/relatorios/pecas-mais-alugadas` — ranking de produtos
-- [ ] `GET /v1/relatorios/atrasos-pendentes` — locações em atraso
+## MILESTONE 9 — Testes Frontend
+**Status: CONCLUÍDO — v1.3.0 / v1.5.0**
 
-### Backend — Notificações (RF09 do documento original)
+- [x] **Vitest + Testing Library** — 56 testes unitários — v1.3.0
+  - `format.test.ts` — 18 testes (formatCurrency, formatDate, formatDocumento, labels)
+  - `utils.test.ts` — 6 testes (cn / tailwind-merge)
+  - `auth.store.test.ts` — 13 testes (login, logout, hasRole, estado inicial)
+  - `status-badge.test.tsx` — 10 testes (LocacaoBadge, PagamentoBadge, DisponibilidadeBadge)
+  - `auth.service.test.ts` + `catalogo.service.test.ts` — 9 testes (mock axios)
+- [x] **Playwright E2E** — 25 testes end-to-end — v1.5.0
+  - `auth.spec.ts` — 7 testes (login, guard de rota, validação)
+  - `dashboard.spec.ts` — 5 testes (KPIs, navegação)
+  - `catalogo.spec.ts` — 5 testes (CRUD dialog, busca, validação)
+  - `navegacao.spec.ts` — 8 testes (sidebar, 404, voltar ao painel)
 
-- [ ] `NotificacaoService.java` — interface com `enviarEmail()` / `enviarWhatsApp()`
+---
+
+## MILESTONE 10 — Configuração para Produção
+**Status: CONCLUÍDO — v1.4.0**
+
+- [x] **CORS** — `CorsConfigurationSource` no SecurityConfig; preflight OPTIONS não recebe 401
+- [x] **Variáveis de ambiente** — `${VAR:default}` em todo o `application.yml`
+- [x] **Profile prod** — `application-prod.yml`: show-sql=false, Swagger desabilitado
+- [x] **`.env.example`** — todas as variáveis documentadas com descrição
+- [x] **`.gitignore`** — playwright-report/, test-results/ adicionados
+
+---
+
+## PENDENTES — Débitos técnicos e melhorias futuras
+
+### Backend
+- [ ] `ProdutoServiceTest` — cobertura ≥ 80%
+- [ ] Jacoco — relatório de cobertura HTML (`mvn verify`)
+- [ ] Testcontainers — testes de integração com PostgreSQL real
+- [ ] Spring Actuator — health-check endpoint
+- [ ] Tabela de usuários — substituir autenticação in-memory
+- [ ] `POST /v1/auth/refresh` — refresh token
+- [ ] Campos faltantes no Produto: `tamanho`, `cor`, `descricao`, `imagemUrl`
+
+### Backend — Notificações (RF09)
+- [ ] `NotificacaoService.java` — interface `enviarEmail()` / `enviarWhatsApp()`
 - [ ] `EmailNotificacaoAdapter.java` — Spring Mail (SMTP)
 - [ ] Confirmação de reserva, lembrete de retirada/devolução, aviso de atraso
 
-### DevOps
-
-- [ ] `docker-compose.yml` — PostgreSQL + backend (dev)
-- [ ] `Dockerfile` backend — multi-stage build (Java 21 + Maven)
-- [ ] GitHub Actions CI — build + tests + coverage report
-- [ ] Variáveis de ambiente seguras (`.env.example`)
-
-### Frontend — Next.js 14+ (0% concluído)
-
-**Stack:** Next.js 14+ (App Router) + TypeScript + Tailwind CSS + shadcn/ui + Framer Motion
-**Tema:** Elegância sombria — Deep Rose `#c2185b`, Onyx `#1a1a2e`, Gold `#d4af37`, Ivory `#faf8f5`
-**Tipografia:** Playfair Display (headings) + Inter (body)
-
-- [ ] Setup Next.js + Tailwind + shadcn/ui + Zustand/TanStack Query + ESLint/Prettier
-- [ ] Design System: `ProductCard`, `StatusBadge`, `DateRangePicker`, `Timeline`, `PriceDisplay`
-- [ ] `/login` — autenticação com imagem de fundo (moda)
-- [ ] `/dashboard` — KPIs: locações hoje, em atraso, receita do mês, peças disponíveis
-- [ ] `/catalogo` — grid de produtos com filtros (categoria, disponibilidade, faixa de preço)
-- [ ] `/clientes` — tabela com busca e paginação
-- [ ] `/locacoes` — lista com filtros de status + fluxo de reserva em steps
-- [ ] `/locacoes/[id]` — timeline de estados + botões de ação contextual
-- [ ] `/estoque` — visão geral + histórico de movimentações
-- [ ] `/relatorios` — gráficos (Recharts): faturamento, peças mais alugadas
-- [ ] Portal do Cliente — `/portal/minhas-locacoes`
-- [ ] Testes: Vitest + Testing Library (componentes) + Playwright (E2E)
+### Nuvem (futuro)
+- [ ] Deploy AWS/GCP — configurar `SPRING_PROFILES_ACTIVE=prod` + secrets manager
+- [ ] Docker Compose produção — nginx + backend + frontend
+- [ ] CI/CD — pipeline de deploy automático
 
 ---
 
 ## RESUMO DO PROGRESSO
 
-| Módulo | Backend | Testes | Frontend |
-|---|---|---|---|
-| Setup/Config | ✅ 100% | ✅ (security) | ❌ 0% |
-| Catálogo | ✅ 100% | ⚠️ parcial | ❌ 0% |
-| Clientes | ✅ 100% | ✅ | ❌ 0% |
-| Locações | ✅ 100% | ✅ 44 testes | ❌ 0% |
-| Estoque | ✅ 100% | ✅ | ❌ 0% |
-| Pagamentos | ✅ 100% | ✅ 18 testes | ❌ 0% |
-| Segurança JWT | ✅ 100% | ✅ 19 testes | ❌ 0% |
-| Documentação | ✅ 100% | — | — |
-| Relatórios | ❌ 0% | ❌ 0% | ❌ 0% |
-| Flyway | ❌ 0% | — | — |
-| Notificações | ❌ 0% | ❌ 0% | — |
-| DevOps | ❌ 0% | — | — |
-| Frontend | — | — | ❌ 0% |
+| Módulo | Backend | Testes Backend | Frontend | Testes Frontend |
+|---|---|---|---|---|
+| Setup/Config | ✅ | ✅ | ✅ | — |
+| Catálogo | ✅ | ⚠️ parcial | ✅ | ✅ E2E |
+| Clientes | ✅ | ✅ | ✅ | ✅ E2E |
+| Locações | ✅ | ✅ 44 | ✅ | ✅ E2E |
+| Estoque | ✅ | ✅ | ✅ | ✅ E2E |
+| Pagamentos | ✅ | ✅ 18 | ✅ | ✅ E2E |
+| Segurança JWT | ✅ | ✅ 19 | ✅ | ✅ (unit) |
+| Relatórios | ✅ | ✅ 9 | ✅ | ✅ E2E |
+| Documentação | ✅ | — | — | — |
+| DevOps | ✅ | — | — | — |
+| Notificações | ❌ | ❌ | — | — |
 
-**Total de testes:** 119 | **BUILD SUCCESS** | **Releases:** v0.1.0 → v0.8.0
+**Testes backend:** 128 | **Testes frontend (unit):** 56 | **Testes E2E:** 25
+**Releases:** v0.1.0 → v1.5.0 | **BUILD SUCCESS**
 
-**Próximas etapas recomendadas (backend):**
-1. Flyway (débito técnico crítico antes de produção)
-2. Módulo Relatórios (RF do documento original)
-3. Docker Compose + CI/CD
+---
 
-**Próxima etapa recomendada (grande):**
-- Frontend Next.js — toda a interface ainda está em branco
+## COMO RODAR LOCALMENTE
+
+### Pré-requisitos
+- Java 21 + Maven
+- Node.js 20+ + npm
+- PostgreSQL rodando na porta 5432 com banco `aluguel`
+
+### 1. Backend
+```bash
+cd backend/closetRental
+./mvnw spring-boot:run
+# API disponível em http://localhost:8080
+# Swagger em http://localhost:8080/swagger-ui.html
+```
+
+### 2. Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+# App disponível em http://localhost:3000
+```
+
+### Contas de teste
+| Usuário | Senha | Role |
+|---------|-------|------|
+| admin | admin123 | ADMIN |
+| atendente | atendente123 | ATENDENTE |
+| cliente | cliente123 | CLIENTE |

@@ -99,7 +99,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./backend/closetRental
-          dockerfile: ./backend/closetRental/Dockerfile
+          file: ./backend/closetRental/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

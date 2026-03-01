@@ -1,5 +1,5 @@
 # CHECKLIST COMPLETO — Sistema Closet Rental (Atelier)
-> Loja de Aluguel de Roupas & Vestidos | Última atualização: 2026-02-28
+> Loja de Aluguel de Roupas & Vestidos | Última atualização: 2026-02-28 (v1.6.0)
 > Progresso global: 100% Backend | 100% Frontend | Pronto para rodar localmente
 
 ---
@@ -152,7 +152,7 @@
 ---
 
 ## MILESTONE 8 — Frontend Next.js 16
-**Status: CONCLUÍDO — v1.2.0**
+**Status: CONCLUÍDO — v1.2.0 → v1.6.0**
 
 **Stack:** Next.js 16 App Router + TypeScript + Tailwind CSS + shadcn/ui + Framer Motion
 **Tema:** Elegância sombria — Deep Rose `#c2185b`, Onyx `#1a1a2e`, Gold `#d4af37`, Ivory `#faf8f5`
@@ -161,13 +161,21 @@
 - [x] Design System: `StatusBadge`, `Sidebar`, `Header`
 - [x] `/login` — form JWT + hint contas de teste + Framer Motion
 - [x] `/dashboard` — 4 KPIs + peças em uso + atrasos pendentes
-- [x] `/catalogo` — grid cards com CRUD completo (dialog criar/editar) + paginação
+- [x] `/catalogo` — grid cards com CRUD completo (dialog criar/editar) + paginação — v1.2.0
+- [x] `/catalogo` — toggle de visualização (grid/lista) + busca global (size=200) — v1.6.0
 - [x] `/clientes` — tabela com CRUD + inativar/reativar + paginação
+- [x] `/clientes` — CPF/Documento exibido corretamente (LGPD: mascarado na lista, completo ao editar) — v1.6.0
 - [x] `/locacoes` — lista filtrada por status (tabs) + criar reserva + ações contextuais
+- [x] `/locacoes` — Combobox de busca para cliente e produto (sem digitar IDs) — v1.6.0
+- [x] `/locacoes` — nomes reais de cliente/produto na tabela via O(1) Map lookup — v1.6.0
 - [x] `/locacoes/[id]` — detalhe com timeline de estados + ações + pagamentos da locação
-- [x] `/estoque` — histórico de movimentações paginado
-- [x] `/pagamentos` — processar + estornar
+- [x] `/locacoes/[id]` — botão "Processar Pagamento" com dialog (valor pré-preenchido + método) — v1.6.0
+- [x] `/estoque` — histórico de movimentações paginado + cards de resumo (total/disponíveis/indisponíveis) — v1.6.0
+- [x] `/estoque` — ações rápidas: Enviar para Manutenção / Retornar da Manutenção via Combobox — v1.6.0
+- [x] `/pagamentos` — cards resumo (Aprovados, Receita Total, Estornados, Falhas) — v1.6.0
+- [x] `/pagamentos` — filtro por status + link para detalhe da locação + contagem de itens — v1.6.0
 - [x] `/relatorios` — faturamento mensal + peças mais alugadas + atrasos pendentes
+- [x] `src/components/shared/combobox.tsx` — Combobox reutilizável (Popover + busca local) — v1.6.0
 - [x] `src/lib/api.ts` — axios + interceptors (Bearer JWT + redirect 401)
 - [x] `src/store/auth.store.ts` — Zustand persist
 - [x] `src/types/index.ts` — tipos espelho dos DTOs do backend
@@ -180,8 +188,8 @@
 ## MILESTONE 9 — Testes Frontend
 **Status: CONCLUÍDO — v1.3.0 / v1.5.0**
 
-- [x] **Vitest + Testing Library** — 56 testes unitários — v1.3.0
-  - `format.test.ts` — 18 testes (formatCurrency, formatDate, formatDocumento, labels)
+- [x] **Vitest + Testing Library** — 59 testes unitários — v1.3.0 / v1.6.0
+  - `format.test.ts` — 21 testes (formatCurrency, formatDate, formatDocumento, labels)
   - `utils.test.ts` — 6 testes (cn / tailwind-merge)
   - `auth.store.test.ts` — 13 testes (login, logout, hasRole, estado inicial)
   - `status-badge.test.tsx` — 10 testes (LocacaoBadge, PagamentoBadge, DisponibilidadeBadge)
@@ -244,8 +252,8 @@
 | DevOps | ✅ | — | — | — |
 | Notificações | ❌ | ❌ | — | — |
 
-**Testes backend:** 128 | **Testes frontend (unit):** 56 | **Testes E2E:** 25
-**Releases:** v0.1.0 → v1.5.0 | **BUILD SUCCESS**
+**Testes backend:** 128 | **Testes frontend (unit):** 59 | **Testes E2E:** 25
+**Releases:** v0.1.0 → v1.6.0 | **BUILD SUCCESS**
 
 ---
 

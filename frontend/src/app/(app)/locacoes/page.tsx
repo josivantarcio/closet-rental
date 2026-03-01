@@ -35,7 +35,7 @@ import { locacoesService } from "@/lib/services/locacoes.service";
 import { clientesService } from "@/lib/services/clientes.service";
 import { catalogoService } from "@/lib/services/catalogo.service";
 import { formatCurrency, formatDate } from "@/lib/format";
-import type { StatusLocacao } from "@/types";
+import type { StatusLocacao, ClienteResponse, ProdutoResponse } from "@/types";
 
 const schema = z.object({
   dataInicio: z.string().min(1, "Data início obrigatória"),
@@ -69,24 +69,31 @@ export default function LocacoesPage() {
       locacoesService.listar(page, 20, statusFilter === "TODOS" ? undefined : statusFilter),
   });
 
-  const { data: clientesData, isLoading: clientesLoading } = useQuery({
+  // Carrega clientes e produtos sempre (para resolver nomes na tabela)
+  const { data: clientesData } = useQuery({
     queryKey: ["clientes-select"],
     queryFn: () => clientesService.listar(0, 200),
-    enabled: dialogOpen,
     staleTime: 60_000,
   });
 
-  const { data: catalogoData, isLoading: catalogoLoading } = useQuery({
+  const { data: catalogoData } = useQuery({
     queryKey: ["catalogo-select"],
     queryFn: () => catalogoService.listar(0, 200),
-    enabled: dialogOpen,
     staleTime: 60_000,
   });
+
+  // Mapas para lookup O(1)
+  const clienteMap = new Map<number, ClienteResponse>(
+    (clientesData?.content ?? []).map((c) => [c.id, c])
+  );
+  const produtoMap = new Map<number, ProdutoResponse>(
+    (catalogoData?.content ?? []).map((p) => [p.id, p])
+  );
 
   const clienteItems: ComboboxItem[] = (clientesData?.content ?? []).map((c) => ({
     id: c.id,
     label: c.nome,
-    sublabel: c.documento,
+    sublabel: c.documentoMascarado ?? c.documento,
   }));
 
   const produtoItems: ComboboxItem[] = (catalogoData?.content ?? []).map((p) => ({
@@ -163,13 +170,17 @@ export default function LocacoesPage() {
     criarMutation.mutate(data);
   };
 
-  const filtered = data?.content.filter((l) =>
-    String(l.id).includes(search) ||
-    String(l.clienteId).includes(search) ||
-    String(l.produtoId).includes(search) ||
-    (l.clienteNome?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
-    (l.produtoNome?.toLowerCase().includes(search.toLowerCase()) ?? false)
-  );
+  const nomeCliente = (id: number) => clienteMap.get(id)?.nome ?? `Cliente #${id}`;
+  const nomeProduto = (id: number) => produtoMap.get(id)?.nome ?? `Produto #${id}`;
+
+  const filtered = data?.content.filter((l) => {
+    const s = search.toLowerCase();
+    return (
+      String(l.id).includes(s) ||
+      nomeCliente(l.clienteId).toLowerCase().includes(s) ||
+      nomeProduto(l.produtoId).toLowerCase().includes(s)
+    );
+  });
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -181,7 +192,7 @@ export default function LocacoesPage() {
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por ID, cliente, produto..."
+              placeholder="Buscar por ID, cliente ou produto..."
               className="pl-9"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -236,8 +247,12 @@ export default function LocacoesPage() {
                     <TableCell className="font-mono text-xs text-muted-foreground">
                       #{loc.id}
                     </TableCell>
-                    <TableCell className="text-sm">{loc.clienteNome ?? `Cliente #${loc.clienteId}`}</TableCell>
-                    <TableCell className="text-sm">{loc.produtoNome ?? `Produto #${loc.produtoId}`}</TableCell>
+                    <TableCell className="text-sm font-medium">
+                      {nomeCliente(loc.clienteId)}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {nomeProduto(loc.produtoId)}
+                    </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {formatDate(loc.dataInicio)} → {formatDate(loc.dataFim)}
                     </TableCell>
@@ -320,7 +335,6 @@ export default function LocacoesPage() {
                 value={clienteId}
                 onSelect={(id) => { setClienteId(id); setClienteError(false); }}
                 placeholder="Selecionar cliente..."
-                loading={clientesLoading}
               />
               {clienteError && <p className="text-xs text-destructive">Cliente obrigatório</p>}
             </div>
@@ -331,7 +345,6 @@ export default function LocacoesPage() {
                 value={produtoId}
                 onSelect={(id) => { setProdutoId(id); setProdutoError(false); }}
                 placeholder="Selecionar produto..."
-                loading={catalogoLoading}
               />
               {produtoError && <p className="text-xs text-destructive">Produto obrigatório</p>}
             </div>

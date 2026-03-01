@@ -178,7 +178,7 @@ export default function ClientesPage() {
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{c.nome}</TableCell>
                     <TableCell className="text-muted-foreground">{c.email}</TableCell>
-                    <TableCell className="font-mono text-xs">{formatDocumento(c.documento)}</TableCell>
+                    <TableCell className="font-mono text-xs">{c.documentoMascarado ?? formatDocumento(c.documento)}</TableCell>
                     <TableCell className="text-muted-foreground">{c.telefone}</TableCell>
                     <TableCell>
                       {c.ativo ? (

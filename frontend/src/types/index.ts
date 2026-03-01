@@ -50,7 +50,8 @@ export interface ClienteResponse {
   nome: string;
   email: string;
   telefone: string;
-  documento: string;
+  documento: string;           // disponível apenas em buscarPorId (ADMIN)
+  documentoMascarado?: string; // disponível na listagem (LGPD)
   ativo: boolean;
 }
 

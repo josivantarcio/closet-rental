@@ -23,31 +23,60 @@ documentação OpenAPI 3 integrada.
 
 ## Pré-requisitos
 
-- Java 21+
-- Maven 3.9+
-- PostgreSQL 16 rodando em `localhost:5432`
+- Java 21+, Maven 3.9+ *(apenas para backend local)*
+- Node.js 20+ *(apenas para frontend local)*
+- Docker + Docker Compose *(opção recomendada: sobe tudo automaticamente)*
 
 ---
 
-## Configuração do banco
-
-```sql
-CREATE DATABASE aluguel;
--- usuário padrão: postgres / postgres
-```
-
-O esquema é criado automaticamente via `ddl-auto: update` na primeira execução.
-
----
-
-## Executar a aplicação
+## Execução com Docker (recomendado)
 
 ```bash
+# Sobe PostgreSQL + backend Spring Boot (primeira vez faz o build da imagem)
+docker compose up -d
+
+# Frontend (em outro terminal)
+cd frontend
+npm install
+npm run dev
+```
+
+- API: `http://localhost:8080`
+- Frontend: `http://localhost:3001`
+- Swagger: `http://localhost:8080/swagger-ui.html`
+
+> O banco PostgreSQL e o schema são criados automaticamente (Flyway).
+> O build da imagem Docker ocorre apenas na primeira vez ou quando houver mudanças no backend.
+
+---
+
+## Execução local (sem Docker)
+
+### Backend
+```bash
+# Certifique-se de ter PostgreSQL rodando em localhost:5432 com banco 'aluguel'
 cd backend/closetRental
 mvn spring-boot:run
 ```
 
-A API estará disponível em `http://localhost:8080`.
+### Frontend
+```bash
+cd frontend
+npm install
+npm run dev   # http://localhost:3001
+```
+
+---
+
+## Contas de acesso
+
+| Usuário | Senha | Perfil |
+|---|---|---|
+| `admin` | `admin123` | Administrador completo |
+| `atendente` | `atendente123` | Operações do atelier |
+| `cliente` | `cliente123` | Visualização |
+
+---
 
 ---
 
@@ -306,9 +335,25 @@ Cada módulo segue a estrutura:
 
 ---
 
+## Frontend — Funcionalidades
+
+| Página | Funcionalidades |
+|---|---|
+| `/login` | Autenticação JWT + hint de contas de teste |
+| `/dashboard` | KPIs: peças em uso, atrasos, receita, catálogo total |
+| `/catalogo` | CRUD produtos + toggle grid/lista + busca global |
+| `/clientes` | CRUD clientes + inativar/reativar + CPF mascarado (LGPD) |
+| `/locacoes` | Lista filtrada por status + Nova Reserva (Combobox) + nomes reais |
+| `/locacoes/[id]` | Detalhe + timeline + processar pagamento + histórico de pagamentos |
+| `/estoque` | Cards resumo + histórico + manutenção/retorno via Combobox |
+| `/pagamentos` | Cards resumo (Aprovados/Receita/Estornados/Falhas) + estorno + filtro |
+| `/relatorios` | Faturamento mensal + top 10 peças + atrasos pendentes |
+
+---
+
 ## Débitos técnicos conhecidos
 
-- `ddl-auto: update` — migrar para Flyway + `validate` antes do deploy em produção
-- Autenticação in-memory — substituir por banco de usuários (MySQL/PostgreSQL)
+- Autenticação in-memory — substituir por banco de usuários (PostgreSQL)
 - Produto sem campos: `tamanho`, `cor`, `descricao`, `imagemUrl`
 - Cobertura de testes: módulos api/infrastructure sem testes de integração
+- `ProdutoServiceTest` — cobertura unitária completa pendente

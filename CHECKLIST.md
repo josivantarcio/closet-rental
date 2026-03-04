@@ -1,6 +1,6 @@
 # CHECKLIST COMPLETO — Sistema Closet Rental (Atelier)
-> Loja de Aluguel de Roupas & Vestidos | Última atualização: 2026-02-28 (v1.6.0)
-> Progresso global: 100% Backend | 100% Frontend | Pronto para rodar localmente
+> Loja de Aluguel de Roupas & Vestidos | Última atualização: 2026-03-04 (v2.0.0-fase1)
+> Progresso global: Fase 1 concluída | 147 testes backend | BUILD SUCCESS
 
 ---
 
@@ -45,8 +45,8 @@
 - [x] `ProdutoService.java` — CRUD + `buscarDisponiveisNoPeriodo` (NOT EXISTS, O(log n))
 - [x] `ProdutoRequest.java` / `ProdutoResponse.java`
 - [x] `CatalogoController.java` — `/v1/catalogo` com paginação + OpenAPI completo
-- [!] **DÉBITO:** Produto sem campos: `tamanho`, `cor`, `descricao`, `imagemUrl`
-- [ ] Testes unitários `ProdutoServiceTest` (cobertura ≥ 80%)
+- [x] **Campos do Produto:** `tamanho`, `cor`, `descricao`, `imagemUrl` — Flyway V4 — v2.0-fase1
+- [x] Testes unitários `ProdutoServiceTest` — 19 testes, Jacoco ≥ 80% — v2.0-fase1
 - [ ] Filtro por categoria e disponibilidade nos query params
 
 ---
@@ -137,8 +137,8 @@
 - [x] `AuthController.java` — `POST /v1/auth/login` + `LoginRequest` / `LoginResponse`
 - [x] `GlobalExceptionHandler` — handler `AuthenticationException` → 401
 - [x] `AuthControllerTest` — 5 testes | `SecurityRolesTest` — 14 testes
-- [!] **DÉBITO:** Autenticação in-memory — migrar para tabela `usuarios` no banco
-- [ ] `POST /v1/auth/refresh` — refresh token
+- [x] **Autenticação por banco** — tabela `usuarios`, `UserDetailsServiceImpl`, `DataInitializer` — v2.0-fase1
+- [x] **Refresh Token** — `POST /v1/auth/refresh` + `POST /v1/auth/logout`, access 15min, refresh 7d — v2.0-fase1
 
 ---
 
@@ -213,26 +213,59 @@
 
 ---
 
-## PENDENTES — Débitos técnicos e melhorias futuras
+## PENDENTES — Roadmap v2.0 SaaS Multi-Tenant
 
-### Backend
-- [ ] `ProdutoServiceTest` — cobertura ≥ 80%
-- [ ] Jacoco — relatório de cobertura HTML (`mvn verify`)
+### FASE 2 — Multi-Tenancy (próxima sessão)
+- [ ] Flyway V7: coluna `tenant_id UUID` em todas as tabelas + índices compostos
+- [ ] `TenantContext` — ThreadLocal por request
+- [ ] `TenantFilter` — extrai `tenantId` do JWT claim
+- [ ] `TenantAwareRepository` — filtro automático por tenant em todos os módulos
+- [ ] Tabela `tenants`: id, nome, slug, plano (FREE/BASIC/PRO), ativo
+- [ ] `POST /v1/tenants` — onboarding (SUPER_ADMIN only)
+- [ ] Claim `tenantId` no JWT gerado pelo login
+
+### FASE 3 — Lógica de Negócio Avançada
+- [ ] Política de cancelamento com multa graduada (configurável por tenant)
+- [ ] Gestão de caução: `StatusCaucao` enum + fluxo devolução/retenção
+- [ ] Registro de danos na devolução (`itemDanificado`, `descricaoDano`, `valorDesconto`)
+- [ ] Calendário de ocupação por produto (`GET /v1/catalogo/{id}/agenda`)
+- [ ] Locação multi-produto (`itens_locacao` — BREAKING CHANGE)
+- [ ] Contrato digital em PDF (`GET /v1/locacoes/{id}/contrato`)
+
+### FASE 4 — Notificações
+- [ ] `NotificacaoService` interface + `@Async` + `@EventListener`
+- [ ] `EmailNotificacaoAdapter` — Spring Mail + AWS SES
+- [ ] `WhatsAppNotificacaoAdapter` — Twilio / Z-API
+- [ ] Tabela `notificacoes` — histórico + status de entrega
+- [ ] Eventos: reserva criada, lembrete retirada/devolução, atraso, pagamento confirmado
+
+### FASE 5 — Relatórios e Gráficos (obrigatório)
+- [ ] Novos endpoints: ocupação, inadimplência, ticket médio, receita por categoria, top clientes
+- [ ] Exportação PDF/CSV/XLSX
+- [ ] Frontend: Recharts (LineChart, BarChart, PieChart, AreaChart)
+- [ ] Dashboard executivo com período selecionável (hoje/semana/mês/trimestre/ano)
+
+### FASE 6 — Upload de Imagens
+- [ ] AWS S3 + CloudFront CDN
+- [ ] `POST /v1/catalogo/{id}/imagem` — multipart upload + thumbnail
+- [ ] Frontend: drag & drop + preview
+
+### FASE 7 — Portal do Cliente
+- [ ] Área `/minha-conta` para `ROLE_CLIENTE`
+- [ ] Histórico de locações, pagamentos, download de contratos
+
+### FASE 8 — Infraestrutura AWS
+- [ ] ECS Fargate + RDS PostgreSQL Multi-AZ
+- [ ] AWS S3 + CloudFront + SES + Secrets Manager
+- [ ] Application Load Balancer + ACM (HTTPS)
+- [ ] GitHub Actions → ECR → ECS (rolling deploy)
+- [ ] Frontend: Vercel (gratuito, integração nativa Next.js)
+
+### Débitos técnicos menores
 - [ ] Testcontainers — testes de integração com PostgreSQL real
-- [ ] Spring Actuator — health-check endpoint
-- [ ] Tabela de usuários — substituir autenticação in-memory
-- [ ] `POST /v1/auth/refresh` — refresh token
-- [ ] Campos faltantes no Produto: `tamanho`, `cor`, `descricao`, `imagemUrl`
-
-### Backend — Notificações (RF09)
-- [ ] `NotificacaoService.java` — interface `enviarEmail()` / `enviarWhatsApp()`
-- [ ] `EmailNotificacaoAdapter.java` — Spring Mail (SMTP)
-- [ ] Confirmação de reserva, lembrete de retirada/devolução, aviso de atraso
-
-### Nuvem (futuro)
-- [ ] Deploy AWS/GCP — configurar `SPRING_PROFILES_ACTIVE=prod` + secrets manager
-- [ ] Docker Compose produção — nginx + backend + frontend
-- [ ] CI/CD — pipeline de deploy automático
+- [ ] Spring Actuator — health-check endpoint (`/actuator/health`)
+- [ ] Rate limiting por IP — Bucket4j no endpoint de login
+- [ ] Filtro por categoria/tamanho/cor no catálogo (query params)
 
 ---
 
@@ -241,7 +274,7 @@
 | Módulo | Backend | Testes Backend | Frontend | Testes Frontend |
 |---|---|---|---|---|
 | Setup/Config | ✅ | ✅ | ✅ | — |
-| Catálogo | ✅ | ⚠️ parcial | ✅ | ✅ E2E |
+| Catálogo | ✅ | ✅ 19 | ✅ | ✅ E2E |
 | Clientes | ✅ | ✅ | ✅ | ✅ E2E |
 | Locações | ✅ | ✅ 44 | ✅ | ✅ E2E |
 | Estoque | ✅ | ✅ | ✅ | ✅ E2E |
@@ -250,10 +283,12 @@
 | Relatórios | ✅ | ✅ 9 | ✅ | ✅ E2E |
 | Documentação | ✅ | — | — | — |
 | DevOps | ✅ | — | — | — |
+| Usuários/Auth | ✅ | ✅ | ✅ | ✅ (unit) |
 | Notificações | ❌ | ❌ | — | — |
+| Multi-Tenant | ❌ | ❌ | — | — |
 
-**Testes backend:** 128 | **Testes frontend (unit):** 59 | **Testes E2E:** 25
-**Releases:** v0.1.0 → v1.6.0 | **BUILD SUCCESS**
+**Testes backend:** 147 | **Testes frontend (unit):** 59 | **Testes E2E:** 25
+**Releases:** v0.1.0 → v1.6.0 → v2.0-fase1 | **BUILD SUCCESS**
 
 ---
 

@@ -27,6 +27,8 @@ describe('useAuthStore — initial state', () => {
 describe('useAuthStore — login', () => {
   const loginData = {
     token: 'eyJhbGciOiJIUzI1NiJ9.test',
+    tipo: 'Bearer',
+    expiresIn: 900,
     username: 'admin',
     roles: ['ROLE_ADMIN'],
   }
@@ -58,6 +60,8 @@ describe('useAuthStore — logout', () => {
     act(() => {
       useAuthStore.getState().login({
         token: 'some-token',
+        tipo: 'Bearer',
+        expiresIn: 900,
         username: 'admin',
         roles: ['ROLE_ADMIN'],
       })
@@ -81,6 +85,8 @@ describe('useAuthStore — hasRole', () => {
     act(() => {
       useAuthStore.getState().login({
         token: 'tok',
+        tipo: 'Bearer',
+        expiresIn: 900,
         username: 'admin',
         roles: ['ROLE_ADMIN'],
       })

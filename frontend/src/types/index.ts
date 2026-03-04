@@ -10,8 +10,11 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
+  tipo: string;
+  expiresIn: number;
   username: string;
   roles: string[];
+  refreshToken?: string;
 }
 
 // --- Paginação ---
@@ -33,6 +36,10 @@ export interface ProdutoResponse {
   valorDiaria: number;
   codigo?: string;
   disponivel: boolean;
+  tamanho?: string;
+  cor?: string;
+  descricao?: string;
+  imagemUrl?: string;
   createdBy: string;
 }
 
@@ -42,6 +49,10 @@ export interface ProdutoRequest {
   valorDiaria: number;
   codigo?: string;
   disponivel?: boolean;
+  tamanho?: string;
+  cor?: string;
+  descricao?: string;
+  imagemUrl?: string;
 }
 
 // --- Clientes ---

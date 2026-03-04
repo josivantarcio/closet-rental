@@ -49,6 +49,10 @@ public class ProdutoService {
         existente.setValorDiaria(produto.getValorDiaria());
         existente.setCodigo(produto.getCodigo());
         existente.setDisponivel(produto.isDisponivel());
+        existente.setTamanho(produto.getTamanho());
+        existente.setCor(produto.getCor());
+        existente.setDescricao(produto.getDescricao());
+        existente.setImagemUrl(produto.getImagemUrl());
         log.info("Atualizando produto id: {}", id);
         return repositoryPort.salvar(existente);
     }

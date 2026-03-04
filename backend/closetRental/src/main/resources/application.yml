@@ -34,7 +34,8 @@ app:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
   jwt:
     secret: ${JWT_SECRET:404D635166546A576E5A7234753778214125442A472D4B6150645367566B5970}
-    expiration: ${JWT_EXPIRATION:86400}
+    expiration: ${JWT_EXPIRATION:900}
+    refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800}
   locacao:
     caucao-padrao: ${CAUCAO_PADRAO:100.00}
     percentual-multa-diaria: ${PERCENTUAL_MULTA_DIARIA:0.10}

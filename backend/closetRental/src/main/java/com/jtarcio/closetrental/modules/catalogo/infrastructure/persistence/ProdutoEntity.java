@@ -40,6 +40,18 @@ public class ProdutoEntity {
     @Column(nullable = false)
     private boolean disponivel;
 
+    @Column(length = 20)
+    private String tamanho;
+
+    @Column(length = 50)
+    private String cor;
+
+    @Column(columnDefinition = "TEXT")
+    private String descricao;
+
+    @Column(name = "imagem_url", length = 500)
+    private String imagemUrl;
+
     @CreatedBy
     @Column(name = "created_by", updatable = false)
     private String createdBy;

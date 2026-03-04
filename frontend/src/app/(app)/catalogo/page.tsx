@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Plus, Search, Pencil, Trash2, Loader2, LayoutGrid, List } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Loader2, LayoutGrid, List, Tag, Palette, Ruler, FileText, Link2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,6 +12,7 @@ import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,6 +48,10 @@ const schema = z.object({
   categoria: z.enum(["VESTIDO", "TERNO", "ACESSORIO", "CALCADO", "OUTRO"] as const),
   valorDiaria: z.string().refine((v) => !isNaN(Number(v)) && Number(v) > 0, "Valor deve ser positivo"),
   codigo: z.string().optional(),
+  tamanho: z.string().max(20).optional(),
+  cor: z.string().max(50).optional(),
+  descricao: z.string().optional(),
+  imagemUrl: z.string().url("URL inválida").optional().or(z.literal("")),
 });
 
 type FormData = {
@@ -54,6 +59,10 @@ type FormData = {
   categoria: CategoriaProduto;
   valorDiaria: string;
   codigo?: string;
+  tamanho?: string;
+  cor?: string;
+  descricao?: string;
+  imagemUrl?: string;
 };
 
 const categorias: CategoriaProduto[] = ["VESTIDO", "TERNO", "ACESSORIO", "CALCADO", "OUTRO"];
@@ -113,7 +122,7 @@ export default function CatalogoPage() {
 
   const openCreate = () => {
     setEditingProduto(null);
-    reset({ nome: "", valorDiaria: "", codigo: "" });
+    reset({ nome: "", valorDiaria: "", codigo: "", tamanho: "", cor: "", descricao: "", imagemUrl: "" });
     setDialogOpen(true);
   };
 
@@ -124,6 +133,10 @@ export default function CatalogoPage() {
       categoria: produto.categoria as CategoriaProduto,
       valorDiaria: String(produto.valorDiaria),
       codigo: produto.codigo ?? "",
+      tamanho: produto.tamanho ?? "",
+      cor: produto.cor ?? "",
+      descricao: produto.descricao ?? "",
+      imagemUrl: produto.imagemUrl ?? "",
     });
     setDialogOpen(true);
   };
@@ -134,6 +147,10 @@ export default function CatalogoPage() {
       categoria: data.categoria,
       valorDiaria: Number(data.valorDiaria),
       codigo: data.codigo || undefined,
+      tamanho: data.tamanho || undefined,
+      cor: data.cor || undefined,
+      descricao: data.descricao || undefined,
+      imagemUrl: data.imagemUrl || undefined,
     };
     if (editingProduto) {
       atualizarMutation.mutate({ id: editingProduto.id, data: payload });
@@ -235,7 +252,17 @@ export default function CatalogoPage() {
           >
             {produtos.map((produto) => (
               <Card key={produto.id} className="group relative overflow-hidden">
-                <CardContent className="pt-5 pb-4 px-4">
+                {/* Imagem do produto */}
+                {produto.imagemUrl && (
+                  <div className="h-40 overflow-hidden bg-muted">
+                    <img
+                      src={produto.imagemUrl}
+                      alt={produto.nome}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    />
+                  </div>
+                )}
+                <CardContent className="pt-4 pb-4 px-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm leading-tight truncate">{produto.nome}</p>
@@ -247,9 +274,20 @@ export default function CatalogoPage() {
                           </span>
                         )}
                       </p>
+                      {/* Tamanho + Cor */}
+                      {(produto.tamanho || produto.cor) && (
+                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
+                          {produto.tamanho && <span className="bg-secondary px-1.5 py-0.5 rounded text-[10px] font-medium">{produto.tamanho}</span>}
+                          {produto.cor && <span className="italic">{produto.cor}</span>}
+                        </p>
+                      )}
                     </div>
                     <DisponibilidadeBadge disponivel={produto.disponivel} />
                   </div>
+                  {/* Descrição truncada */}
+                  {produto.descricao && (
+                    <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{produto.descricao}</p>
+                  )}
                   <p className="mt-3 text-lg font-bold font-display text-primary">
                     {formatCurrency(produto.valorDiaria)}
                     <span className="text-xs font-normal text-muted-foreground">/dia</span>
@@ -288,6 +326,7 @@ export default function CatalogoPage() {
                   <TableHead className="w-16">#</TableHead>
                   <TableHead>Nome</TableHead>
                   <TableHead>Categoria</TableHead>
+                  <TableHead>Tam. / Cor</TableHead>
                   <TableHead>Código</TableHead>
                   <TableHead>Valor/dia</TableHead>
                   <TableHead>Status</TableHead>
@@ -300,11 +339,22 @@ export default function CatalogoPage() {
                     <TableCell className="font-mono text-xs text-muted-foreground">
                       #{produto.id}
                     </TableCell>
-                    <TableCell className="font-medium">{produto.nome}</TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{produto.nome}</p>
+                        {produto.descricao && (
+                          <p className="text-xs text-muted-foreground truncate max-w-xs">{produto.descricao}</p>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-xs">
                         {categoriaLabel[produto.categoria] ?? produto.categoria}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {produto.tamanho && <span className="bg-secondary px-1.5 py-0.5 rounded font-medium mr-1">{produto.tamanho}</span>}
+                      {produto.cor ?? "—"}
                     </TableCell>
                     <TableCell className="font-mono text-xs text-muted-foreground">
                       {produto.codigo ?? "—"}
@@ -373,48 +423,73 @@ export default function CatalogoPage() {
 
       {/* Dialog criar/editar */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display">
               {editingProduto ? "Editar Produto" : "Novo Produto"}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Nome */}
             <div className="space-y-1.5">
               <Label htmlFor="nome">Nome</Label>
               <Input id="nome" placeholder="Ex: Vestido Longo Azul" {...register("nome")} />
               {errors.nome && <p className="text-xs text-destructive">{errors.nome.message}</p>}
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="codigo">
-                Código <span className="text-muted-foreground text-xs">(opcional)</span>
-              </Label>
-              <Input id="codigo" placeholder="Ex: VES-001-P" {...register("codigo")} />
-              <p className="text-xs text-muted-foreground">
-                Identifica o modelo — útil quando há múltiplos tamanhos
-              </p>
+
+            {/* Categoria + Código lado a lado */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Categoria</Label>
+                <Select
+                  defaultValue={editingProduto?.categoria}
+                  onValueChange={(v) => setValue("categoria", v as CategoriaProduto)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categorias.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {categoriaLabel[c] ?? c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.categoria && (
+                  <p className="text-xs text-destructive">{errors.categoria.message}</p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="codigo" className="flex items-center gap-1">
+                  <Tag className="h-3 w-3" /> Código
+                  <span className="text-muted-foreground text-xs">(opc.)</span>
+                </Label>
+                <Input id="codigo" placeholder="VES-001-P" {...register("codigo")} />
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label>Categoria</Label>
-              <Select
-                defaultValue={editingProduto?.categoria}
-                onValueChange={(v) => setValue("categoria", v as CategoriaProduto)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {categorias.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {categoriaLabel[c] ?? c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.categoria && (
-                <p className="text-xs text-destructive">{errors.categoria.message}</p>
-              )}
+
+            {/* Tamanho + Cor lado a lado */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="tamanho" className="flex items-center gap-1">
+                  <Ruler className="h-3 w-3" /> Tamanho
+                  <span className="text-muted-foreground text-xs">(opc.)</span>
+                </Label>
+                <Input id="tamanho" placeholder="P, M, G, 38, 42..." {...register("tamanho")} />
+                {errors.tamanho && <p className="text-xs text-destructive">{errors.tamanho.message}</p>}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="cor" className="flex items-center gap-1">
+                  <Palette className="h-3 w-3" /> Cor
+                  <span className="text-muted-foreground text-xs">(opc.)</span>
+                </Label>
+                <Input id="cor" placeholder="Azul, Vermelho..." {...register("cor")} />
+                {errors.cor && <p className="text-xs text-destructive">{errors.cor.message}</p>}
+              </div>
             </div>
+
+            {/* Valor diária */}
             <div className="space-y-1.5">
               <Label htmlFor="valorDiaria">Valor Diária (R$)</Label>
               <Input
@@ -429,6 +504,33 @@ export default function CatalogoPage() {
                 <p className="text-xs text-destructive">{errors.valorDiaria.message}</p>
               )}
             </div>
+
+            {/* Descrição */}
+            <div className="space-y-1.5">
+              <Label htmlFor="descricao" className="flex items-center gap-1">
+                <FileText className="h-3 w-3" /> Descrição
+                <span className="text-muted-foreground text-xs">(opc.)</span>
+              </Label>
+              <Textarea
+                id="descricao"
+                placeholder="Detalhes da peça, material, ocasião indicada..."
+                rows={3}
+                {...register("descricao")}
+              />
+            </div>
+
+            {/* URL da imagem */}
+            <div className="space-y-1.5">
+              <Label htmlFor="imagemUrl" className="flex items-center gap-1">
+                <Link2 className="h-3 w-3" /> URL da Imagem
+                <span className="text-muted-foreground text-xs">(opc.)</span>
+              </Label>
+              <Input id="imagemUrl" placeholder="https://..." {...register("imagemUrl")} />
+              {errors.imagemUrl && (
+                <p className="text-xs text-destructive">{errors.imagemUrl.message}</p>
+              )}
+            </div>
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancelar

@@ -98,6 +98,10 @@ public class CatalogoController {
         produto.setValorDiaria(request.valorDiaria());
         produto.setCodigo(request.codigo());
         produto.setDisponivel(request.disponivel() != null ? request.disponivel() : true);
+        produto.setTamanho(request.tamanho());
+        produto.setCor(request.cor());
+        produto.setDescricao(request.descricao());
+        produto.setImagemUrl(request.imagemUrl());
         return produto;
     }
 
@@ -109,6 +113,10 @@ public class CatalogoController {
                 produto.getValorDiaria(),
                 produto.getCodigo(),
                 produto.isDisponivel(),
+                produto.getTamanho(),
+                produto.getCor(),
+                produto.getDescricao(),
+                produto.getImagemUrl(),
                 produto.getCreatedBy(),
                 produto.getCreatedAt()
         );

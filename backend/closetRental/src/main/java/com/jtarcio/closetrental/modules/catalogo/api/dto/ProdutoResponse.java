@@ -10,6 +10,10 @@ public record ProdutoResponse(
         BigDecimal valorDiaria,
         String codigo,
         boolean disponivel,
+        String tamanho,
+        String cor,
+        String descricao,
+        String imagemUrl,
         String createdBy,
         LocalDateTime createdAt
 ) {}

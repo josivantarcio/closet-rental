@@ -55,8 +55,13 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Login público
+                        // Auth público (login, refresh, logout não exigem token)
                         .requestMatchers(HttpMethod.POST, "/v1/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v1/auth/refresh").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v1/auth/logout").permitAll()
+
+                        // Usuários — somente ADMIN
+                        .requestMatchers("/v1/usuarios/**").hasRole("ADMIN")
 
                         // Swagger e docs públicos
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()

@@ -11,19 +11,28 @@ public class Produto {
     private BigDecimal valorDiaria;
     private String codigo;
     private boolean disponivel;
+    private String tamanho;
+    private String cor;
+    private String descricao;
+    private String imagemUrl;
     private String createdBy;
     private LocalDateTime createdAt;
 
     public Produto() {}
 
     public Produto(Long id, String nome, String categoria, BigDecimal valorDiaria,
-                   String codigo, boolean disponivel, String createdBy, LocalDateTime createdAt) {
+                   String codigo, boolean disponivel, String tamanho, String cor,
+                   String descricao, String imagemUrl, String createdBy, LocalDateTime createdAt) {
         this.id = id;
         this.nome = nome;
         this.categoria = categoria;
         this.valorDiaria = valorDiaria;
         this.codigo = codigo;
         this.disponivel = disponivel;
+        this.tamanho = tamanho;
+        this.cor = cor;
+        this.descricao = descricao;
+        this.imagemUrl = imagemUrl;
         this.createdBy = createdBy;
         this.createdAt = createdAt;
     }
@@ -57,6 +66,18 @@ public class Produto {
 
     public boolean isDisponivel() { return disponivel; }
     public void setDisponivel(boolean disponivel) { this.disponivel = disponivel; }
+
+    public String getTamanho() { return tamanho; }
+    public void setTamanho(String tamanho) { this.tamanho = tamanho; }
+
+    public String getCor() { return cor; }
+    public void setCor(String cor) { this.cor = cor; }
+
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
+
+    public String getImagemUrl() { return imagemUrl; }
+    public void setImagemUrl(String imagemUrl) { this.imagemUrl = imagemUrl; }
 
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }

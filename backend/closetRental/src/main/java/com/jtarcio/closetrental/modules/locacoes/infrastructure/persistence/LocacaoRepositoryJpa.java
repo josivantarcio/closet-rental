@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * Repositório JPA de LocacaoEntity.
@@ -21,7 +22,13 @@ public interface LocacaoRepositoryJpa extends JpaRepository<LocacaoEntity, Long>
 
     Page<LocacaoEntity> findByClienteId(Long clienteId, Pageable pageable);
 
+    Page<LocacaoEntity> findByTenantIdAndClienteId(UUID tenantId, Long clienteId, Pageable pageable);
+
     Page<LocacaoEntity> findByStatus(StatusLocacao status, Pageable pageable);
+
+    Page<LocacaoEntity> findByTenantIdAndStatus(UUID tenantId, StatusLocacao status, Pageable pageable);
+
+    Page<LocacaoEntity> findByTenantId(UUID tenantId, Pageable pageable);
 
     /**
      * Detecta overlap de período para o mesmo produto, ignorando CANCELADO e DEVOLVIDO.

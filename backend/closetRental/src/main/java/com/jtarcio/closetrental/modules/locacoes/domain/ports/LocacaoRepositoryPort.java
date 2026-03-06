@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Port de repositório de Locacao.
@@ -19,11 +20,11 @@ public interface LocacaoRepositoryPort {
 
     Optional<Locacao> buscarPorId(Long id);
 
-    Page<Locacao> listarPorCliente(Long clienteId, Pageable pageable);
+    Page<Locacao> listarPorCliente(UUID tenantId, Long clienteId, Pageable pageable);
 
-    Page<Locacao> listarPorStatus(StatusLocacao status, Pageable pageable);
+    Page<Locacao> listarPorStatus(UUID tenantId, StatusLocacao status, Pageable pageable);
 
-    Page<Locacao> listarTodos(Pageable pageable);
+    Page<Locacao> listarTodos(UUID tenantId, Pageable pageable);
 
     /**
      * Verifica se existe sobreposição de datas para o produto no período informado,

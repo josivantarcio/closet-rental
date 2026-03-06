@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Port (interface) de repositório de Cliente — define o contrato que
@@ -18,7 +19,7 @@ public interface ClienteRepositoryPort {
 
     Optional<Cliente> buscarPorDocumento(String documento);
 
-    Page<Cliente> listarTodos(Pageable pageable);
+    Page<Cliente> listarTodos(UUID tenantId, Pageable pageable);
 
     void deletar(Long id);
 

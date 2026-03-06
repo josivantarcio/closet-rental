@@ -1,6 +1,6 @@
 # CHECKLIST COMPLETO — Sistema Closet Rental (Atelier)
-> Loja de Aluguel de Roupas & Vestidos | Última atualização: 2026-03-04 (v2.0.0-fase1)
-> Progresso global: Fase 1 concluída | 147 testes backend | BUILD SUCCESS
+> Loja de Aluguel de Roupas & Vestidos | Última atualização: 2026-03-05 (v2.0.0-fase2)
+> Progresso global: Fase 2 concluída | 156 testes backend | BUILD SUCCESS
 
 ---
 
@@ -215,14 +215,20 @@
 
 ## PENDENTES — Roadmap v2.0 SaaS Multi-Tenant
 
-### FASE 2 — Multi-Tenancy (próxima sessão)
-- [ ] Flyway V7: coluna `tenant_id UUID` em todas as tabelas + índices compostos
-- [ ] `TenantContext` — ThreadLocal por request
-- [ ] `TenantFilter` — extrai `tenantId` do JWT claim
-- [ ] `TenantAwareRepository` — filtro automático por tenant em todos os módulos
-- [ ] Tabela `tenants`: id, nome, slug, plano (FREE/BASIC/PRO), ativo
-- [ ] `POST /v1/tenants` — onboarding (SUPER_ADMIN only)
-- [ ] Claim `tenantId` no JWT gerado pelo login
+### FASE 2 — Multi-Tenancy — CONCLUÍDA v2.0-fase2
+- [x] Flyway V7: `tenant_id UUID` em todas as tabelas + índices compostos
+- [x] `TenantContext` — ThreadLocal por request, isolamento por thread
+- [x] `TenantFilter` — `OncePerRequestFilter`, extrai `tenantId` do JWT (ou header `X-Tenant-Id` para SUPER_ADMIN)
+- [x] Tabela `tenants`: id (UUID), nome, slug, plano (FREE/BASIC/PRO), ativo, createdAt, updatedAt
+- [x] Módulo `tenants` completo: domain, ports, infra (entity/repo/adapter/mapper), service, controller, DTOs
+- [x] `POST /v1/tenants`, `GET /v1/tenants`, `GET /v1/tenants/{id}`, `PUT /v1/tenants/{id}/ativar|desativar` (SUPER_ADMIN)
+- [x] Claim `tenantId` no JWT — `JwtService.gerarToken(UserDetails, UUID)` + `extrairTenantId(token)`
+- [x] `LoginResponse` com campo `tenantId`
+- [x] ROLE_SUPER_ADMIN — acessa todos os tenants; `tenantId = null` no JWT = sem filtro
+- [x] Todas as entities JPA com `tenant_id UUID` — queries JPQL filtradas por tenantId
+- [x] Todos os services usam `TenantContext.getTenantId()` ao criar/listar entidades
+- [x] `DataInitializer` — cria tenant padrão + superadmin/super123 (SUPER_ADMIN sem tenant)
+- [x] 9 novos testes: `TenantContextTest` (4) + `TenantServiceTest` (5) — total 156 testes
 
 ### FASE 3 — Lógica de Negócio Avançada
 - [ ] Política de cancelamento com multa graduada (configurável por tenant)
@@ -285,10 +291,10 @@
 | DevOps | ✅ | — | — | — |
 | Usuários/Auth | ✅ | ✅ | ✅ | ✅ (unit) |
 | Notificações | ❌ | ❌ | — | — |
-| Multi-Tenant | ❌ | ❌ | — | — |
+| Multi-Tenant | ✅ | ✅ 9 | — | — |
 
-**Testes backend:** 147 | **Testes frontend (unit):** 59 | **Testes E2E:** 25
-**Releases:** v0.1.0 → v1.6.0 → v2.0-fase1 | **BUILD SUCCESS**
+**Testes backend:** 156 | **Testes frontend (unit):** 59 | **Testes E2E:** 25
+**Releases:** v0.1.0 → v1.6.0 → v2.0-fase1 → v2.0-fase2 | **BUILD SUCCESS**
 
 ---
 
@@ -318,6 +324,7 @@ npm run dev
 ### Contas de teste
 | Usuário | Senha | Role |
 |---------|-------|------|
+| superadmin | super123 | SUPER_ADMIN |
 | admin | admin123 | ADMIN |
 | atendente | atendente123 | ATENDENTE |
 | cliente | cliente123 | CLIENTE |

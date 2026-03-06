@@ -1,6 +1,7 @@
 package com.jtarcio.closetrental.modules.usuarios.domain.model;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class Usuario {
 
@@ -11,6 +12,7 @@ public class Usuario {
     private String senhaHash;
     private String role;
     private boolean ativo;
+    private UUID tenantId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -18,7 +20,7 @@ public class Usuario {
 
     public Usuario(Long id, String nome, String username, String email,
                    String senhaHash, String role, boolean ativo,
-                   LocalDateTime createdAt, LocalDateTime updatedAt) {
+                   UUID tenantId, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.nome = nome;
         this.username = username;
@@ -26,6 +28,7 @@ public class Usuario {
         this.senhaHash = senhaHash;
         this.role = role;
         this.ativo = ativo;
+        this.tenantId = tenantId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -53,6 +56,9 @@ public class Usuario {
 
     public boolean isAtivo() { return ativo; }
     public void setAtivo(boolean ativo) { this.ativo = ativo; }
+
+    public UUID getTenantId() { return tenantId; }
+    public void setTenantId(UUID tenantId) { this.tenantId = tenantId; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

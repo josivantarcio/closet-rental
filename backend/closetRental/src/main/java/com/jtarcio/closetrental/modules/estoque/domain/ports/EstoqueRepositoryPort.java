@@ -5,6 +5,8 @@ import com.jtarcio.closetrental.modules.estoque.domain.model.TipoMovimentacao;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.UUID;
+
 /**
  * Port de repositorio do modulo de estoque.
  */
@@ -21,12 +23,12 @@ public interface EstoqueRepositoryPort {
     /**
      * Historico paginado por tipo de movimentacao.
      */
-    Page<MovimentacaoEstoque> listarPorTipo(TipoMovimentacao tipo, Pageable pageable);
+    Page<MovimentacaoEstoque> listarPorTipo(UUID tenantId, TipoMovimentacao tipo, Pageable pageable);
 
     /**
      * Historico completo paginado — para o painel administrativo.
      */
-    Page<MovimentacaoEstoque> listarTodos(Pageable pageable);
+    Page<MovimentacaoEstoque> listarTodos(UUID tenantId, Pageable pageable);
 
     /**
      * Conta quantas vezes uma peca foi alugada (tipo SAIDA).

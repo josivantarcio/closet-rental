@@ -1,6 +1,7 @@
 package com.jtarcio.closetrental.modules.clientes.domain.model;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Domain model puro de Cliente — sem dependências Spring/JPA.
@@ -15,6 +16,7 @@ public class Cliente {
     private String documento; // CPF ou CNPJ
     private String endereco;
     private boolean ativo;
+    private UUID tenantId;
     private String createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -71,6 +73,9 @@ public class Cliente {
 
     public boolean isAtivo() { return ativo; }
     public void setAtivo(boolean ativo) { this.ativo = ativo; }
+
+    public UUID getTenantId() { return tenantId; }
+    public void setTenantId(UUID tenantId) { this.tenantId = tenantId; }
 
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }

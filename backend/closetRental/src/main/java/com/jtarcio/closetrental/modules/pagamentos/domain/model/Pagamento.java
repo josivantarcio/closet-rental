@@ -2,6 +2,7 @@ package com.jtarcio.closetrental.modules.pagamentos.domain.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Aggregate Root do domínio de pagamentos.
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 public class Pagamento {
 
     private Long id;
+    private UUID tenantId;
     private Long locacaoId;
     private BigDecimal valor;
     private StatusPagamento status;
@@ -49,6 +51,9 @@ public class Pagamento {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public UUID getTenantId() { return tenantId; }
+    public void setTenantId(UUID tenantId) { this.tenantId = tenantId; }
 
     public Long getLocacaoId() { return locacaoId; }
     public void setLocacaoId(Long locacaoId) { this.locacaoId = locacaoId; }

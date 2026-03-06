@@ -2,6 +2,7 @@ package com.jtarcio.closetrental.modules.catalogo.domain.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class Produto {
 
@@ -15,6 +16,7 @@ public class Produto {
     private String cor;
     private String descricao;
     private String imagemUrl;
+    private UUID tenantId;
     private String createdBy;
     private LocalDateTime createdAt;
 
@@ -78,6 +80,9 @@ public class Produto {
 
     public String getImagemUrl() { return imagemUrl; }
     public void setImagemUrl(String imagemUrl) { this.imagemUrl = imagemUrl; }
+
+    public UUID getTenantId() { return tenantId; }
+    public void setTenantId(UUID tenantId) { this.tenantId = tenantId; }
 
     public String getCreatedBy() { return createdBy; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }

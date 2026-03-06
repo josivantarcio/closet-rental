@@ -4,6 +4,7 @@ import com.jtarcio.closetrental.modules.locacoes.domain.model.Locacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.ports.LocacaoRepositoryPort;
 import com.jtarcio.closetrental.shared.exception.EntityNotFoundException;
+import com.jtarcio.closetrental.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,18 +33,18 @@ public class LocacaoQueryService {
     @Transactional(readOnly = true)
     public Page<Locacao> listarTodos(Pageable pageable) {
         log.info("Listando todas as locacoes — pagina {}", pageable.getPageNumber());
-        return locacaoPort.listarTodos(pageable);
+        return locacaoPort.listarTodos(TenantContext.getTenantId(), pageable);
     }
 
     @Transactional(readOnly = true)
     public Page<Locacao> listarPorCliente(Long clienteId, Pageable pageable) {
         log.info("Listando locacoes do cliente id: {}", clienteId);
-        return locacaoPort.listarPorCliente(clienteId, pageable);
+        return locacaoPort.listarPorCliente(TenantContext.getTenantId(), clienteId, pageable);
     }
 
     @Transactional(readOnly = true)
     public Page<Locacao> listarPorStatus(StatusLocacao status, Pageable pageable) {
         log.info("Listando locacoes com status: {}", status);
-        return locacaoPort.listarPorStatus(status, pageable);
+        return locacaoPort.listarPorStatus(TenantContext.getTenantId(), status, pageable);
     }
 }

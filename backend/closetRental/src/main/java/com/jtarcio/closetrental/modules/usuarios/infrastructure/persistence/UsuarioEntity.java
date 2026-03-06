@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "usuarios",
@@ -41,6 +42,10 @@ public class UsuarioEntity {
 
     @Column(nullable = false)
     private boolean ativo;
+
+    // nullable: SUPER_ADMIN não pertence a nenhum tenant
+    @Column(name = "tenant_id")
+    private UUID tenantId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

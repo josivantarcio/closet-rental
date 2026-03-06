@@ -5,6 +5,7 @@ import com.jtarcio.closetrental.modules.clientes.domain.ports.ClienteRepositoryP
 import com.jtarcio.closetrental.shared.exception.BusinessException;
 import com.jtarcio.closetrental.shared.exception.ConflictException;
 import com.jtarcio.closetrental.shared.exception.EntityNotFoundException;
+import com.jtarcio.closetrental.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,7 @@ public class ClienteService {
         validarEmailUnico(cliente.getEmail(), null);
         validarDocumentoUnico(cliente.getDocumento(), null);
         cliente.setAtivo(true);
+        cliente.setTenantId(TenantContext.getTenantId());
         log.info("Criando cliente: {}", cliente.getNome());
         return repositoryPort.salvar(cliente);
     }
@@ -43,7 +45,7 @@ public class ClienteService {
     @Transactional(readOnly = true)
     public Page<Cliente> listar(Pageable pageable) {
         log.info("Listando clientes — página {}", pageable.getPageNumber());
-        return repositoryPort.listarTodos(pageable);
+        return repositoryPort.listarTodos(TenantContext.getTenantId(), pageable);
     }
 
     /**

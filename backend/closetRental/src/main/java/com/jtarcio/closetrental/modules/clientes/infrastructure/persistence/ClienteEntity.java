@@ -11,6 +11,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Entidade JPA mapeada para a tabela {@code clientes}.
@@ -58,6 +59,9 @@ public class ClienteEntity {
     @Column(nullable = false)
     @Builder.Default
     private boolean ativo = true;
+
+    @Column(name = "tenant_id", nullable = false, updatable = false)
+    private UUID tenantId;
 
     @CreatedBy
     @Column(name = "created_by", updatable = false, length = 100)

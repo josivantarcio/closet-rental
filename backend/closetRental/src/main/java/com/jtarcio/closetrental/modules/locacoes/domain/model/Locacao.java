@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 
 /**
  * Aggregate Root do domínio de locações.
@@ -14,6 +15,7 @@ import java.time.temporal.ChronoUnit;
 public class Locacao {
 
     private Long id;
+    private UUID tenantId;
     private Long clienteId;
     private Long produtoId;
 
@@ -115,6 +117,9 @@ public class Locacao {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public UUID getTenantId() { return tenantId; }
+    public void setTenantId(UUID tenantId) { this.tenantId = tenantId; }
 
     public Long getClienteId() { return clienteId; }
     public void setClienteId(Long clienteId) { this.clienteId = clienteId; }

@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Adapter que implementa PagamentoRepositoryPort usando JPA + MapStruct.
@@ -38,12 +39,18 @@ public class PagamentoRepositoryAdapter implements PagamentoRepositoryPort {
     }
 
     @Override
-    public Page<Pagamento> listarPorStatus(StatusPagamento status, Pageable pageable) {
-        return jpa.findByStatusOrderByCriadoEmDesc(status, pageable).map(mapper::toDomain);
+    public Page<Pagamento> listarPorStatus(UUID tenantId, StatusPagamento status, Pageable pageable) {
+        if (tenantId == null) {
+            return jpa.findByStatusOrderByCriadoEmDesc(status, pageable).map(mapper::toDomain);
+        }
+        return jpa.findByTenantIdAndStatusOrderByCriadoEmDesc(tenantId, status, pageable).map(mapper::toDomain);
     }
 
     @Override
-    public Page<Pagamento> listarTodos(Pageable pageable) {
-        return jpa.findAll(pageable).map(mapper::toDomain);
+    public Page<Pagamento> listarTodos(UUID tenantId, Pageable pageable) {
+        if (tenantId == null) {
+            return jpa.findAll(pageable).map(mapper::toDomain);
+        }
+        return jpa.findByTenantIdOrderByCriadoEmDesc(tenantId, pageable).map(mapper::toDomain);
     }
 }

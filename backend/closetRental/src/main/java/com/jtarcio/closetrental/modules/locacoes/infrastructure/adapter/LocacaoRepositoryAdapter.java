@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Adapter que implementa LocacaoRepositoryPort usando JPA + MapStruct.
@@ -34,18 +35,27 @@ public class LocacaoRepositoryAdapter implements LocacaoRepositoryPort {
     }
 
     @Override
-    public Page<Locacao> listarPorCliente(Long clienteId, Pageable pageable) {
-        return jpa.findByClienteId(clienteId, pageable).map(mapper::toDomain);
+    public Page<Locacao> listarPorCliente(UUID tenantId, Long clienteId, Pageable pageable) {
+        if (tenantId == null) {
+            return jpa.findByClienteId(clienteId, pageable).map(mapper::toDomain);
+        }
+        return jpa.findByTenantIdAndClienteId(tenantId, clienteId, pageable).map(mapper::toDomain);
     }
 
     @Override
-    public Page<Locacao> listarPorStatus(StatusLocacao status, Pageable pageable) {
-        return jpa.findByStatus(status, pageable).map(mapper::toDomain);
+    public Page<Locacao> listarPorStatus(UUID tenantId, StatusLocacao status, Pageable pageable) {
+        if (tenantId == null) {
+            return jpa.findByStatus(status, pageable).map(mapper::toDomain);
+        }
+        return jpa.findByTenantIdAndStatus(tenantId, status, pageable).map(mapper::toDomain);
     }
 
     @Override
-    public Page<Locacao> listarTodos(Pageable pageable) {
-        return jpa.findAll(pageable).map(mapper::toDomain);
+    public Page<Locacao> listarTodos(UUID tenantId, Pageable pageable) {
+        if (tenantId == null) {
+            return jpa.findAll(pageable).map(mapper::toDomain);
+        }
+        return jpa.findByTenantId(tenantId, pageable).map(mapper::toDomain);
     }
 
     @Override

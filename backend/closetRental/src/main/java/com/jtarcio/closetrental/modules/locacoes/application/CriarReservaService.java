@@ -9,6 +9,7 @@ import com.jtarcio.closetrental.modules.locacoes.domain.ports.LocacaoRepositoryP
 import com.jtarcio.closetrental.shared.exception.BusinessException;
 import com.jtarcio.closetrental.shared.exception.ConflictException;
 import com.jtarcio.closetrental.shared.exception.EntityNotFoundException;
+import com.jtarcio.closetrental.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -79,6 +80,7 @@ public class CriarReservaService {
         BigDecimal caucaoEfetiva = (caucaoCustom != null) ? caucaoCustom : caucaoPadrao;
 
         Locacao locacao = new Locacao();
+        locacao.setTenantId(TenantContext.getTenantId());
         locacao.setClienteId(clienteId);
         locacao.setProdutoId(produtoId);
         locacao.setDataInicio(dataInicio);

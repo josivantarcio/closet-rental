@@ -10,6 +10,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 /**
  * Adapter que implementa EstoqueRepositoryPort usando JPA + MapStruct.
  */
@@ -31,13 +33,19 @@ public class EstoqueRepositoryAdapter implements EstoqueRepositoryPort {
     }
 
     @Override
-    public Page<MovimentacaoEstoque> listarPorTipo(TipoMovimentacao tipo, Pageable pageable) {
-        return jpa.findByTipoOrderByCriadoEmDesc(tipo, pageable).map(mapper::toDomain);
+    public Page<MovimentacaoEstoque> listarPorTipo(UUID tenantId, TipoMovimentacao tipo, Pageable pageable) {
+        if (tenantId == null) {
+            return jpa.findByTipoOrderByCriadoEmDesc(tipo, pageable).map(mapper::toDomain);
+        }
+        return jpa.findByTenantIdAndTipoOrderByCriadoEmDesc(tenantId, tipo, pageable).map(mapper::toDomain);
     }
 
     @Override
-    public Page<MovimentacaoEstoque> listarTodos(Pageable pageable) {
-        return jpa.findAll(pageable).map(mapper::toDomain);
+    public Page<MovimentacaoEstoque> listarTodos(UUID tenantId, Pageable pageable) {
+        if (tenantId == null) {
+            return jpa.findAll(pageable).map(mapper::toDomain);
+        }
+        return jpa.findByTenantIdOrderByCriadoEmDesc(tenantId, pageable).map(mapper::toDomain);
     }
 
     @Override

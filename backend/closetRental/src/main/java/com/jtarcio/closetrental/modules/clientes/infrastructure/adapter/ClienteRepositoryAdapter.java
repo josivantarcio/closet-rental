@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Adapter que implementa o port de domínio usando JPA + MapStruct.
@@ -40,8 +41,11 @@ public class ClienteRepositoryAdapter implements ClienteRepositoryPort {
     }
 
     @Override
-    public Page<Cliente> listarTodos(Pageable pageable) {
-        return jpa.findAll(pageable).map(mapper::toDomain);
+    public Page<Cliente> listarTodos(UUID tenantId, Pageable pageable) {
+        if (tenantId == null) {
+            return jpa.findAll(pageable).map(mapper::toDomain);
+        }
+        return jpa.findByTenantId(tenantId, pageable).map(mapper::toDomain);
     }
 
     @Override

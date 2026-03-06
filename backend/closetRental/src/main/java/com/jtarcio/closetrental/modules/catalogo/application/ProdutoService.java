@@ -4,6 +4,7 @@ import com.jtarcio.closetrental.modules.catalogo.domain.model.Produto;
 import com.jtarcio.closetrental.modules.catalogo.domain.ports.ProdutoRepositoryPort;
 import com.jtarcio.closetrental.shared.exception.BusinessException;
 import com.jtarcio.closetrental.shared.exception.EntityNotFoundException;
+import com.jtarcio.closetrental.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,7 @@ public class ProdutoService {
     @Transactional
     public Produto criar(Produto produto) {
         validarValorDiaria(produto.getValorDiaria());
+        produto.setTenantId(TenantContext.getTenantId());
         log.info("Criando produto: {}", produto.getNome());
         return repositoryPort.salvar(produto);
     }
@@ -30,7 +32,7 @@ public class ProdutoService {
     @Transactional(readOnly = true)
     public Page<Produto> listar(Pageable pageable) {
         log.info("Listando produtos");
-        return repositoryPort.listarTodos(pageable);
+        return repositoryPort.listarTodos(TenantContext.getTenantId(), pageable);
     }
 
     @Transactional(readOnly = true)

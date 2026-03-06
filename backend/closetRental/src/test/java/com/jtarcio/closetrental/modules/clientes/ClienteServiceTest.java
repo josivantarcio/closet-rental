@@ -154,7 +154,7 @@ class ClienteServiceTest {
         void deveRetornarPaginaDeClientes() {
             clienteValido.setId(1L);
             Page<Cliente> page = new PageImpl<>(List.of(clienteValido));
-            when(repositoryPort.listarTodos(any())).thenReturn(page);
+            when(repositoryPort.listarTodos(any(), any())).thenReturn(page);
 
             Page<Cliente> resultado = clienteService.listar(PageRequest.of(0, 20));
 

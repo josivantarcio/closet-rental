@@ -4,6 +4,7 @@ import com.jtarcio.closetrental.modules.pagamentos.domain.model.Pagamento;
 import com.jtarcio.closetrental.modules.pagamentos.domain.model.StatusPagamento;
 import com.jtarcio.closetrental.modules.pagamentos.domain.ports.PagamentoRepositoryPort;
 import com.jtarcio.closetrental.shared.exception.EntityNotFoundException;
+import com.jtarcio.closetrental.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,11 +34,11 @@ public class PagamentoQueryService {
 
     @Transactional(readOnly = true)
     public Page<Pagamento> listarPorStatus(StatusPagamento status, Pageable pageable) {
-        return pagamentoPort.listarPorStatus(status, pageable);
+        return pagamentoPort.listarPorStatus(TenantContext.getTenantId(), status, pageable);
     }
 
     @Transactional(readOnly = true)
     public Page<Pagamento> listarTodos(Pageable pageable) {
-        return pagamentoPort.listarTodos(pageable);
+        return pagamentoPort.listarTodos(TenantContext.getTenantId(), pageable);
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "produtos")
@@ -51,6 +52,9 @@ public class ProdutoEntity {
 
     @Column(name = "imagem_url", length = 500)
     private String imagemUrl;
+
+    @Column(name = "tenant_id", nullable = false, updatable = false)
+    private UUID tenantId;
 
     @CreatedBy
     @Column(name = "created_by", updatable = false)

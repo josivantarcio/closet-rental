@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -27,8 +28,11 @@ public class ProdutoRepositoryAdapter implements ProdutoRepositoryPort {
     }
 
     @Override
-    public Page<Produto> listarTodos(Pageable pageable) {
-        return jpaRepository.findAll(pageable).map(mapper::toDomain);
+    public Page<Produto> listarTodos(UUID tenantId, Pageable pageable) {
+        if (tenantId == null) {
+            return jpaRepository.findAll(pageable).map(mapper::toDomain);
+        }
+        return jpaRepository.findByTenantId(tenantId, pageable).map(mapper::toDomain);
     }
 
     @Override
@@ -37,8 +41,11 @@ public class ProdutoRepositoryAdapter implements ProdutoRepositoryPort {
     }
 
     @Override
-    public Page<Produto> buscarDisponiveisNoPeriodo(LocalDate dataInicio, LocalDate dataFim, Pageable pageable) {
-        return jpaRepository.buscarDisponiveisNoPeriodo(dataInicio, dataFim, pageable).map(mapper::toDomain);
+    public Page<Produto> buscarDisponiveisNoPeriodo(UUID tenantId, LocalDate dataInicio, LocalDate dataFim, Pageable pageable) {
+        if (tenantId == null) {
+            return jpaRepository.buscarDisponiveisNoPeriodo(dataInicio, dataFim, pageable).map(mapper::toDomain);
+        }
+        return jpaRepository.buscarDisponiveisNoPeriodoByTenant(tenantId, dataInicio, dataFim, pageable).map(mapper::toDomain);
     }
 
     @Override

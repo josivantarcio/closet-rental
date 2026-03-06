@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.UUID;
+
 /**
  * Repositorio JPA de movimentacoes de estoque.
  * Todas as queries usam indices — complexidade O(log n).
@@ -17,6 +19,10 @@ public interface MovimentacaoEstoqueRepositoryJpa
     Page<MovimentacaoEstoqueEntity> findByProdutoIdOrderByCriadoEmDesc(Long produtoId, Pageable pageable);
 
     Page<MovimentacaoEstoqueEntity> findByTipoOrderByCriadoEmDesc(TipoMovimentacao tipo, Pageable pageable);
+
+    Page<MovimentacaoEstoqueEntity> findByTenantIdAndTipoOrderByCriadoEmDesc(UUID tenantId, TipoMovimentacao tipo, Pageable pageable);
+
+    Page<MovimentacaoEstoqueEntity> findByTenantIdOrderByCriadoEmDesc(UUID tenantId, Pageable pageable);
 
     /**
      * Conta total de saidas (locacoes) de uma peca — para ranking de mais alugadas.

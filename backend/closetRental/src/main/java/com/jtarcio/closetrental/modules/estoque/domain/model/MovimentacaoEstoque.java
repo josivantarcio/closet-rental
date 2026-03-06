@@ -1,6 +1,7 @@
 package com.jtarcio.closetrental.modules.estoque.domain.model;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Domain model de MovimentacaoEstoque — POJO puro sem Spring/JPA.
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 public class MovimentacaoEstoque {
 
     private Long id;
+    private UUID tenantId;
     private Long produtoId;
     private Long locacaoId;     // null para movimentacoes manuais (manutencao)
     private TipoMovimentacao tipo;
@@ -39,6 +41,9 @@ public class MovimentacaoEstoque {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public UUID getTenantId() { return tenantId; }
+    public void setTenantId(UUID tenantId) { this.tenantId = tenantId; }
 
     public Long getProdutoId() { return produtoId; }
     public void setProdutoId(Long produtoId) { this.produtoId = produtoId; }

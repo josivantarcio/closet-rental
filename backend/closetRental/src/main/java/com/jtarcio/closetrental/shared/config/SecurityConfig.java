@@ -1,6 +1,7 @@
 package com.jtarcio.closetrental.shared.config;
 
 import com.jtarcio.closetrental.shared.security.JwtAuthenticationFilter;
+import com.jtarcio.closetrental.shared.tenant.TenantFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -44,6 +45,7 @@ public class SecurityConfig {
     private String allowedOrigins;
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final TenantFilter tenantFilter;
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
 
@@ -60,8 +62,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/v1/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/logout").permitAll()
 
-                        // Usuários — somente ADMIN
-                        .requestMatchers("/v1/usuarios/**").hasRole("ADMIN")
+                        // Tenants — somente SUPER_ADMIN
+                        .requestMatchers("/v1/tenants/**").hasRole("SUPER_ADMIN")
+
+                        // Usuários — somente ADMIN (e SUPER_ADMIN por hierarquia)
+                        .requestMatchers("/v1/usuarios/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
 
                         // Swagger e docs públicos
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
@@ -95,7 +100,8 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, authException) ->
                                 response.sendError(401, "Nao autenticado")))
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(tenantFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }

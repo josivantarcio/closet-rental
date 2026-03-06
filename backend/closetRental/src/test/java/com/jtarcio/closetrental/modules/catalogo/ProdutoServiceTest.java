@@ -139,20 +139,20 @@ class ProdutoServiceTest {
         void deveRetornarPaginaDeProdutos() {
             PageRequest pageable = PageRequest.of(0, 10);
             Page<Produto> pagina = new PageImpl<>(List.of(produtoValido));
-            when(repositoryPort.listarTodos(pageable)).thenReturn(pagina);
+            when(repositoryPort.listarTodos(any(), eq(pageable))).thenReturn(pagina);
 
             Page<Produto> resultado = produtoService.listar(pageable);
 
             assertThat(resultado.getContent()).hasSize(1);
             assertThat(resultado.getContent().get(0).getNome()).isEqualTo("Vestido Longo Azul");
-            verify(repositoryPort, times(1)).listarTodos(pageable);
+            verify(repositoryPort, times(1)).listarTodos(any(), eq(pageable));
         }
 
         @Test
         @DisplayName("deve retornar página vazia quando não há produtos")
         void deveRetornarPaginaVazia() {
             PageRequest pageable = PageRequest.of(0, 10);
-            when(repositoryPort.listarTodos(pageable)).thenReturn(Page.empty());
+            when(repositoryPort.listarTodos(any(), eq(pageable))).thenReturn(Page.empty());
 
             Page<Produto> resultado = produtoService.listar(pageable);
 

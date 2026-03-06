@@ -5,6 +5,7 @@ import com.jtarcio.closetrental.modules.auth.api.dto.LoginResponse;
 import com.jtarcio.closetrental.modules.auth.api.dto.RefreshRequest;
 import com.jtarcio.closetrental.modules.auth.application.RefreshTokenService;
 import com.jtarcio.closetrental.modules.auth.infrastructure.persistence.RefreshTokenEntity;
+import com.jtarcio.closetrental.modules.usuarios.domain.ports.UsuarioRepositoryPort;
 import com.jtarcio.closetrental.shared.security.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Controller de autenticação.
@@ -42,6 +44,7 @@ public class AuthController {
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final UserDetailsService userDetailsService;
+    private final UsuarioRepositoryPort usuarioRepositoryPort;
 
     @Value("${app.jwt.expiration}")
     private long expirationSeconds;
@@ -56,7 +59,8 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(request.username(), request.password()));
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String accessToken = jwtService.gerarToken(userDetails);
+        UUID tenantId = resolverTenantId(userDetails.getUsername());
+        String accessToken = jwtService.gerarToken(userDetails, tenantId);
         String refreshToken = refreshTokenService.criarRefreshToken(userDetails.getUsername());
 
         List<String> roles = userDetails.getAuthorities().stream()
@@ -64,7 +68,7 @@ public class AuthController {
                 .toList();
 
         return new LoginResponse(accessToken, "Bearer", expirationSeconds,
-                userDetails.getUsername(), roles, refreshToken);
+                userDetails.getUsername(), roles, refreshToken, tenantId);
     }
 
     @PostMapping("/refresh")
@@ -76,7 +80,8 @@ public class AuthController {
         RefreshTokenEntity entity = refreshTokenService.validar(request.refreshToken());
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(entity.getUsername());
-        String novoAccessToken = jwtService.gerarToken(userDetails);
+        UUID tenantId = resolverTenantId(entity.getUsername());
+        String novoAccessToken = jwtService.gerarToken(userDetails, tenantId);
         String novoRefreshToken = refreshTokenService.criarRefreshToken(entity.getUsername());
 
         List<String> roles = userDetails.getAuthorities().stream()
@@ -84,7 +89,7 @@ public class AuthController {
                 .toList();
 
         return new LoginResponse(novoAccessToken, "Bearer", expirationSeconds,
-                entity.getUsername(), roles, novoRefreshToken);
+                entity.getUsername(), roles, novoRefreshToken, tenantId);
     }
 
     @PostMapping("/logout")
@@ -93,5 +98,11 @@ public class AuthController {
     public void logout(@Valid @RequestBody RefreshRequest request) {
         RefreshTokenEntity entity = refreshTokenService.validar(request.refreshToken());
         refreshTokenService.revogarPorUsername(entity.getUsername());
+    }
+
+    private UUID resolverTenantId(String username) {
+        return usuarioRepositoryPort.buscarPorUsername(username)
+                .map(u -> u.getTenantId())
+                .orElse(null);
     }
 }

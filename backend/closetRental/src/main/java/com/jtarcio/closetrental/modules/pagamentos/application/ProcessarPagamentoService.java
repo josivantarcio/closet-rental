@@ -11,6 +11,7 @@ import com.jtarcio.closetrental.modules.pagamentos.domain.ports.GatewayPagamento
 import com.jtarcio.closetrental.modules.pagamentos.domain.ports.PagamentoRepositoryPort;
 import com.jtarcio.closetrental.shared.exception.BusinessException;
 import com.jtarcio.closetrental.shared.exception.EntityNotFoundException;
+import com.jtarcio.closetrental.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -54,6 +55,7 @@ public class ProcessarPagamentoService {
         }
 
         Pagamento pagamento = new Pagamento();
+        pagamento.setTenantId(TenantContext.getTenantId());
         pagamento.setLocacaoId(locacaoId);
         pagamento.setValor(valor);
         pagamento.setMetodo(metodo);

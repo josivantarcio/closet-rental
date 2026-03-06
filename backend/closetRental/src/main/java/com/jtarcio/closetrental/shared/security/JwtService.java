@@ -13,6 +13,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
@@ -32,21 +33,34 @@ public class JwtService {
     private long expirationSeconds;
 
     public String gerarToken(UserDetails userDetails) {
+        return gerarToken(userDetails, null);
+    }
+
+    public String gerarToken(UserDetails userDetails, UUID tenantId) {
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(userDetails.getUsername())
                 .claim("roles", roles)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expirationSeconds * 1000))
-                .signWith(chave())
-                .compact();
+                .expiration(new Date(System.currentTimeMillis() + expirationSeconds * 1000));
+
+        if (tenantId != null) {
+            builder.claim("tenantId", tenantId.toString());
+        }
+
+        return builder.signWith(chave()).compact();
     }
 
     public String extrairUsername(String token) {
         return extrairClaim(token, Claims::getSubject);
+    }
+
+    public UUID extrairTenantId(String token) {
+        String tenantIdStr = extrairClaim(token, claims -> claims.get("tenantId", String.class));
+        return tenantIdStr != null ? UUID.fromString(tenantIdStr) : null;
     }
 
     public boolean tokenValido(String token, UserDetails userDetails) {

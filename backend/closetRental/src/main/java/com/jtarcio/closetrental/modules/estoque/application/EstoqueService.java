@@ -7,6 +7,7 @@ import com.jtarcio.closetrental.modules.estoque.domain.model.TipoMovimentacao;
 import com.jtarcio.closetrental.modules.estoque.domain.ports.EstoqueRepositoryPort;
 import com.jtarcio.closetrental.shared.exception.BusinessException;
 import com.jtarcio.closetrental.shared.exception.EntityNotFoundException;
+import com.jtarcio.closetrental.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -41,6 +42,7 @@ public class EstoqueService {
         MovimentacaoEstoque mov = new MovimentacaoEstoque(
                 produtoId, locacaoId, TipoMovimentacao.SAIDA,
                 "Peca retirada para locacao #" + locacaoId, operador);
+        mov.setTenantId(TenantContext.getTenantId());
         log.info("Estoque SAIDA: produto={}, locacao={}", produtoId, locacaoId);
         return estoquePort.salvar(mov);
     }
@@ -55,6 +57,7 @@ public class EstoqueService {
         MovimentacaoEstoque mov = new MovimentacaoEstoque(
                 produtoId, locacaoId, TipoMovimentacao.ENTRADA,
                 "Peca devolvida da locacao #" + locacaoId, operador);
+        mov.setTenantId(TenantContext.getTenantId());
         log.info("Estoque ENTRADA: produto={}, locacao={}", produtoId, locacaoId);
         return estoquePort.salvar(mov);
     }
@@ -75,6 +78,7 @@ public class EstoqueService {
         MovimentacaoEstoque mov = new MovimentacaoEstoque(
                 produtoId, null, TipoMovimentacao.MANUTENCAO,
                 motivo != null ? motivo : "Manutencao/limpeza", operador);
+        mov.setTenantId(TenantContext.getTenantId());
         log.info("Estoque MANUTENCAO: produto={}, motivo={}", produtoId, motivo);
         return estoquePort.salvar(mov);
     }
@@ -95,6 +99,7 @@ public class EstoqueService {
         MovimentacaoEstoque mov = new MovimentacaoEstoque(
                 produtoId, null, TipoMovimentacao.RETORNO_MANUTENCAO,
                 observacoes != null ? observacoes : "Retorno da manutencao", operador);
+        mov.setTenantId(TenantContext.getTenantId());
         log.info("Estoque RETORNO_MANUTENCAO: produto={}", produtoId);
         return estoquePort.salvar(mov);
     }
@@ -109,12 +114,12 @@ public class EstoqueService {
 
     @Transactional(readOnly = true)
     public Page<MovimentacaoEstoque> listarPorTipo(TipoMovimentacao tipo, Pageable pageable) {
-        return estoquePort.listarPorTipo(tipo, pageable);
+        return estoquePort.listarPorTipo(TenantContext.getTenantId(), tipo, pageable);
     }
 
     @Transactional(readOnly = true)
     public Page<MovimentacaoEstoque> listarTodos(Pageable pageable) {
-        return estoquePort.listarTodos(pageable);
+        return estoquePort.listarTodos(TenantContext.getTenantId(), pageable);
     }
 
     @Transactional(readOnly = true)

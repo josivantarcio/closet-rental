@@ -20,7 +20,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class UsuarioService {
 
-    private static final Set<String> ROLES_VALIDAS = Set.of("ADMIN", "ATENDENTE", "CLIENTE");
+    private static final Set<String> ROLES_VALIDAS = Set.of("SUPER_ADMIN", "ADMIN", "ATENDENTE", "CLIENTE");
 
     private final UsuarioRepositoryPort repositoryPort;
     private final PasswordEncoder passwordEncoder;

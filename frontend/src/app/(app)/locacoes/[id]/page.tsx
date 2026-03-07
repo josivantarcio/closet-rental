@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LocacaoBadge, PagamentoBadge } from "@/components/shared/status-badge";
+import { WhatsAppShareButton } from "@/components/shared/whatsapp-share-button";
 import { locacoesService } from "@/lib/services/locacoes.service";
 import { pagamentosService } from "@/lib/services/pagamentos.service";
 import { formatCurrency, formatDate, metodoPagamentoLabel } from "@/lib/format";
@@ -163,6 +164,11 @@ export default function LocacaoDetailPage({
                   <dt className="text-muted-foreground">Operador</dt>
                   <dd>{locacao.operador}</dd>
                 </dl>
+
+                {/* Compartilhar */}
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <WhatsAppShareButton locacao={locacao} />
+                </div>
 
                 {/* Ações de status */}
                 {locacao.status !== "CANCELADO" && locacao.status !== "DEVOLVIDO" && (

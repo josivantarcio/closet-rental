@@ -1,8 +1,8 @@
 package com.jtarcio.closetrental.modules.tenants.api.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
+
+import java.math.BigDecimal;
 
 public record TenantRequest(
 
@@ -17,5 +17,20 @@ public record TenantRequest(
 
         @NotBlank(message = "Plano é obrigatório")
         @Pattern(regexp = "^(FREE|BASIC|PRO)$", message = "Plano deve ser FREE, BASIC ou PRO")
-        String plano
+        String plano,
+
+        /** Percentual de multa para cancelamento com 3–6 dias de antecedência (ex: 30.00). Opcional — default 30%. */
+        @DecimalMin(value = "0.00", message = "Percentual não pode ser negativo")
+        @DecimalMax(value = "100.00", message = "Percentual não pode exceder 100%")
+        BigDecimal pctCancelamento3d,
+
+        /** Percentual de multa para cancelamento com 1–2 dias de antecedência (ex: 70.00). Opcional — default 70%. */
+        @DecimalMin(value = "0.00", message = "Percentual não pode ser negativo")
+        @DecimalMax(value = "100.00", message = "Percentual não pode exceder 100%")
+        BigDecimal pctCancelamento1d,
+
+        /** Percentual de multa para cancelamento no dia (ex: 100.00). Opcional — default 100%. */
+        @DecimalMin(value = "0.00", message = "Percentual não pode ser negativo")
+        @DecimalMax(value = "100.00", message = "Percentual não pode exceder 100%")
+        BigDecimal pctCancelamento0d
 ) {}

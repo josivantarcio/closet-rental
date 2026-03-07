@@ -6,10 +6,10 @@ import java.time.LocalDateTime;
 
 /**
  * Resumo de uma locação no histórico de um cliente.
+ * Com locação multi-produto, os detalhes dos itens são buscados via GET /v1/locacoes/{id}.
  */
 public record HistoricoClienteResponse(
         Long locacaoId,
-        Long produtoId,
         String status,
         LocalDate dataInicio,
         LocalDate dataFim,

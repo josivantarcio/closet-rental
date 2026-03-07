@@ -4,6 +4,7 @@ import com.jtarcio.closetrental.modules.locacoes.domain.model.Locacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.ports.LocacaoRepositoryPort;
 import com.jtarcio.closetrental.modules.locacoes.infrastructure.mapper.LocacaoMapper;
+import com.jtarcio.closetrental.modules.locacoes.infrastructure.persistence.ItemLocacaoRepositoryJpa;
 import com.jtarcio.closetrental.modules.locacoes.infrastructure.persistence.LocacaoRepositoryJpa;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,6 +24,7 @@ import java.util.UUID;
 public class LocacaoRepositoryAdapter implements LocacaoRepositoryPort {
 
     private final LocacaoRepositoryJpa jpa;
+    private final ItemLocacaoRepositoryJpa itemJpa;
     private final LocacaoMapper mapper;
 
     @Override
@@ -60,16 +63,24 @@ public class LocacaoRepositoryAdapter implements LocacaoRepositoryPort {
 
     @Override
     public boolean existeOverlapNoPeriodo(Long produtoId, LocalDate dataInicio, LocalDate dataFim, Long excluirLocacaoId) {
-        return jpa.existeOverlapNoPeriodo(produtoId, dataInicio, dataFim, excluirLocacaoId);
+        return itemJpa.existeOverlapNoPeriodo(produtoId, dataInicio, dataFim, excluirLocacaoId);
     }
 
     @Override
     public boolean existeLocacaoAtivaParaProduto(Long produtoId) {
-        return jpa.existeLocacaoAtivaParaProduto(produtoId);
+        return itemJpa.existeLocacaoAtivaParaProduto(produtoId);
     }
 
     @Override
     public boolean existeLocacaoAtivaParaCliente(Long clienteId) {
         return jpa.existeLocacaoAtivaParaCliente(clienteId);
+    }
+
+    @Override
+    public List<Locacao> buscarPeriodosOcupadosNoMes(Long produtoId, LocalDate inicioMes, LocalDate fimMes) {
+        return jpa.buscarPeriodosOcupadosNoMes(produtoId, inicioMes, fimMes)
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 }

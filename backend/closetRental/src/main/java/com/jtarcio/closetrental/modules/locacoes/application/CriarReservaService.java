@@ -3,6 +3,7 @@ package com.jtarcio.closetrental.modules.locacoes.application;
 import com.jtarcio.closetrental.modules.catalogo.domain.model.Produto;
 import com.jtarcio.closetrental.modules.catalogo.domain.ports.ProdutoRepositoryPort;
 import com.jtarcio.closetrental.modules.clientes.domain.ports.ClienteRepositoryPort;
+import com.jtarcio.closetrental.modules.locacoes.domain.model.ItemLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.Locacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.ports.LocacaoRepositoryPort;
@@ -18,17 +19,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
- * Use Case: Criar uma nova reserva.
+ * Use Case: Criar uma nova reserva multi-produto.
  *
  * Regras aplicadas:
  * 1. dataInicio deve ser anterior a dataFim
  * 2. dataInicio nao pode ser no passado
  * 3. Cliente deve existir e estar ativo
- * 4. Produto deve existir e estar disponivel
- * 5. Nenhuma locacao ativa pode se sobrepor ao periodo para o mesmo produto (O(log n) com indice)
- * 6. Calcula valorTotal = valorDiaria * dias + caucao
+ * 4. Cada produto deve existir e estar disponivel
+ * 5. Nenhuma locacao ativa pode se sobrepor ao periodo para cada produto (O(log n) com indice)
+ * 6. Calcula subtotal de cada item = valorDiaria * dias
+ * 7. Calcula valorTotal = soma(subtotais) + caucao
  */
 @Slf4j
 @Service
@@ -43,7 +48,7 @@ public class CriarReservaService {
     private BigDecimal caucaoPadrao;
 
     @Transactional
-    public Locacao executar(Long clienteId, Long produtoId,
+    public Locacao executar(Long clienteId, List<Long> produtoIds,
                             LocalDate dataInicio, LocalDate dataFim,
                             BigDecimal caucaoCustom, String observacoes) {
 
@@ -62,39 +67,49 @@ public class CriarReservaService {
             throw new BusinessException("Nao e possivel criar reserva para cliente inativo");
         }
 
-        // 3. Validar produto
-        Produto produto = produtoPort.buscarPorId(produtoId)
-                .orElseThrow(() -> new EntityNotFoundException("Produto nao encontrado com id: " + produtoId));
-        if (!produto.isDisponivel()) {
-            throw new BusinessException("Produto nao esta disponivel para locacao");
+        // 3. Validar produtos e overlap — O(n * log m) onde n = itens, m = locações
+        UUID tenantId = TenantContext.getTenantId();
+        List<ItemLocacao> itens = new ArrayList<>();
+
+        for (Long produtoId : produtoIds) {
+            Produto produto = produtoPort.buscarPorId(produtoId)
+                    .orElseThrow(() -> new EntityNotFoundException("Produto nao encontrado com id: " + produtoId));
+            if (!produto.isDisponivel()) {
+                throw new BusinessException("Produto '" + produto.getNome() + "' nao esta disponivel para locacao");
+            }
+
+            boolean temOverlap = locacaoPort.existeOverlapNoPeriodo(produtoId, dataInicio, dataFim, null);
+            if (temOverlap) {
+                throw new ConflictException(
+                    "Produto '" + produto.getNome() + "' ja possui locacao ativa no periodo de " + dataInicio + " a " + dataFim);
+            }
+
+            ItemLocacao item = new ItemLocacao();
+            item.setProdutoId(produtoId);
+            item.setNomeProduto(produto.getNome());
+            item.setValorDiaria(produto.getValorDiaria());
+            item.setTenantId(tenantId);
+            itens.add(item);
         }
 
-        // 4. Verificar overlap — O(log n) com indice composto
-        boolean temOverlap = locacaoPort.existeOverlapNoPeriodo(produtoId, dataInicio, dataFim, null);
-        if (temOverlap) {
-            throw new ConflictException(
-                "Produto ja possui locacao ativa no periodo de " + dataInicio + " a " + dataFim);
-        }
-
-        // 5. Calcular valores
+        // 4. Montar locação
         BigDecimal caucaoEfetiva = (caucaoCustom != null) ? caucaoCustom : caucaoPadrao;
 
         Locacao locacao = new Locacao();
-        locacao.setTenantId(TenantContext.getTenantId());
+        locacao.setTenantId(tenantId);
         locacao.setClienteId(clienteId);
-        locacao.setProdutoId(produtoId);
         locacao.setDataInicio(dataInicio);
         locacao.setDataFim(dataFim);
         locacao.setStatus(StatusLocacao.RESERVADO);
-        locacao.setValorDiaria(produto.getValorDiaria());
         locacao.setCaucao(caucaoEfetiva);
         locacao.setMulta(BigDecimal.ZERO);
-        locacao.setValorTotal(locacao.calcularValorTotal());
         locacao.setObservacoes(observacoes);
+        locacao.setItens(itens);
+        locacao.setValorTotal(locacao.calcularValorTotal());
 
         Locacao salva = locacaoPort.salvar(locacao);
-        log.info("Reserva criada: id={}, cliente={}, produto={}, periodo={} a {}, valorTotal={}",
-                salva.getId(), clienteId, produtoId, dataInicio, dataFim, salva.getValorTotal());
+        log.info("Reserva criada: id={}, cliente={}, produtos={}, periodo={} a {}, valorTotal={}",
+                salva.getId(), clienteId, produtoIds, dataInicio, dataFim, salva.getValorTotal());
         return salva;
     }
 }

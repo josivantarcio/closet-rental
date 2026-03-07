@@ -105,6 +105,13 @@
             <version>2.7.0</version>
         </dependency>
 
+        <!-- OpenPDF — geração de contratos em PDF (fork open-source do iText 4) -->
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+            <version>2.0.3</version>
+        </dependency>
+
         <!-- JWT (jjwt 0.12.x) -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

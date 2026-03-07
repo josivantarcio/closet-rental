@@ -1,7 +1,9 @@
 package com.jtarcio.closetrental.modules.catalogo.api;
 
+import com.jtarcio.closetrental.modules.catalogo.api.dto.PeriodoOcupadoResponse;
 import com.jtarcio.closetrental.modules.catalogo.api.dto.ProdutoRequest;
 import com.jtarcio.closetrental.modules.catalogo.api.dto.ProdutoResponse;
+import com.jtarcio.closetrental.modules.catalogo.application.AgendaProdutoService;
 import com.jtarcio.closetrental.modules.catalogo.application.ProdutoService;
 import com.jtarcio.closetrental.modules.catalogo.domain.model.Produto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +17,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.YearMonth;
+import java.util.List;
+
 /**
  * Controller REST do módulo de Catálogo.
  * Endpoint base: /v1/catalogo
@@ -27,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 public class CatalogoController {
 
     private final ProdutoService produtoService;
+    private final AgendaProdutoService agendaProdutoService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -89,6 +95,24 @@ public class CatalogoController {
     })
     public void deletar(@PathVariable Long id) {
         produtoService.deletar(id);
+    }
+
+    @GetMapping("/{id}/agenda")
+    @Operation(summary = "Calendário de ocupação do produto",
+               description = "Retorna os períodos ocupados (RESERVADO ou RETIRADO) de um produto no mês informado. " +
+                             "Formato do parâmetro: YYYY-MM (ex: 2026-03). Endpoint público.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Lista de períodos ocupados no mês"),
+        @ApiResponse(responseCode = "400", description = "Formato de mês inválido — use YYYY-MM"),
+        @ApiResponse(responseCode = "404", description = "Produto não encontrado")
+    })
+    public List<PeriodoOcupadoResponse> agenda(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "") String mes) {
+        YearMonth yearMonth = mes.isBlank()
+                ? YearMonth.now()
+                : YearMonth.parse(mes);
+        return agendaProdutoService.buscarAgenda(id, yearMonth);
     }
 
     private Produto toDomain(ProdutoRequest request) {

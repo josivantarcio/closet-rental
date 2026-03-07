@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,4 +45,11 @@ public interface LocacaoRepositoryPort {
      * Usado para impedir a exclusão do cliente.
      */
     boolean existeLocacaoAtivaParaCliente(Long clienteId);
+
+    /**
+     * Retorna as locações ativas (RESERVADO ou RETIRADO) de um produto
+     * que se intersectam com o intervalo [inicioMes, fimMes].
+     * Usado para montar o calendário de ocupação.
+     */
+    List<Locacao> buscarPeriodosOcupadosNoMes(Long produtoId, LocalDate inicioMes, LocalDate fimMes);
 }

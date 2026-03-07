@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -37,6 +38,15 @@ public class TenantEntity {
 
     @Column(nullable = false)
     private boolean ativo;
+
+    @Column(name = "pct_cancelamento_3d", nullable = false, precision = 5, scale = 2)
+    private BigDecimal pctCancelamento3d = new BigDecimal("30.00");
+
+    @Column(name = "pct_cancelamento_1d", nullable = false, precision = 5, scale = 2)
+    private BigDecimal pctCancelamento1d = new BigDecimal("70.00");
+
+    @Column(name = "pct_cancelamento_0d", nullable = false, precision = 5, scale = 2)
+    private BigDecimal pctCancelamento0d = new BigDecimal("100.00");
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

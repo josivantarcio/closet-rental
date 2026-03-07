@@ -1,5 +1,6 @@
 package com.jtarcio.closetrental.modules.tenants.api.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -9,5 +10,8 @@ public record TenantResponse(
         String slug,
         String plano,
         boolean ativo,
+        BigDecimal pctCancelamento3d,
+        BigDecimal pctCancelamento1d,
+        BigDecimal pctCancelamento0d,
         LocalDateTime createdAt
 ) {}

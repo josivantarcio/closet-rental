@@ -23,6 +23,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -62,12 +63,19 @@ class CriarReservaServiceTest {
         produtoDisponivel.setDisponivel(true);
     }
 
+    /** Executa o service com 1 produto por conveniência nos testes de produto único */
+    private Locacao executarUmProduto(Long clienteId, Long produtoId,
+                                      LocalDate inicio, LocalDate fim,
+                                      BigDecimal caucao, String obs) {
+        return service.executar(clienteId, List.of(produtoId), inicio, fim, caucao, obs);
+    }
+
     @Nested
     @DisplayName("Cenarios de sucesso")
     class Sucesso {
 
         @Test
-        @DisplayName("deve criar reserva com dados validos e calcular valor total corretamente")
+        @DisplayName("deve criar reserva com 1 produto e calcular valor total corretamente")
         void deveCriarReservaECalcularValorTotal() {
             // 3 dias (amanha + 2): valorTotal = 89 * 3 + 100 = 367
             LocalDate inicio = AMANHA;
@@ -82,15 +90,41 @@ class CriarReservaServiceTest {
                 return l;
             });
 
-            Locacao resultado = service.executar(1L, 10L, inicio, fim, null, null);
+            Locacao resultado = executarUmProduto(1L, 10L, inicio, fim, null, null);
 
             assertThat(resultado.getId()).isEqualTo(1L);
             assertThat(resultado.getStatus()).isEqualTo(StatusLocacao.RESERVADO);
-            assertThat(resultado.getValorDiaria()).isEqualByComparingTo("89.00");
+            assertThat(resultado.getItens()).hasSize(1);
+            assertThat(resultado.getItens().get(0).getValorDiaria()).isEqualByComparingTo("89.00");
             assertThat(resultado.getCaucao()).isEqualByComparingTo("100.00");
-            // 89 * 3 + 100 = 367
             assertThat(resultado.getValorTotal()).isEqualByComparingTo("367.00");
             assertThat(resultado.getMulta()).isEqualByComparingTo("0.00");
+        }
+
+        @Test
+        @DisplayName("deve criar reserva com 2 produtos e somar suas diárias")
+        void deveCriarReservaDoisProdutos() {
+            Produto produto2 = new Produto();
+            produto2.setId(20L);
+            produto2.setNome("Véu de Noiva");
+            produto2.setValorDiaria(new BigDecimal("50.00"));
+            produto2.setDisponivel(true);
+
+            LocalDate inicio = AMANHA;
+            LocalDate fim = AMANHA.plusDays(2); // 3 dias
+
+            when(clientePort.buscarPorId(1L)).thenReturn(Optional.of(clienteAtivo));
+            when(produtoPort.buscarPorId(10L)).thenReturn(Optional.of(produtoDisponivel));
+            when(produtoPort.buscarPorId(20L)).thenReturn(Optional.of(produto2));
+            when(locacaoPort.existeOverlapNoPeriodo(eq(10L), any(), any(), isNull())).thenReturn(false);
+            when(locacaoPort.existeOverlapNoPeriodo(eq(20L), any(), any(), isNull())).thenReturn(false);
+            when(locacaoPort.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            Locacao resultado = service.executar(1L, List.of(10L, 20L), inicio, fim, null, null);
+
+            // (89 + 50) * 3 + 100 = 417 + 100 = 517
+            assertThat(resultado.getItens()).hasSize(2);
+            assertThat(resultado.getValorTotal()).isEqualByComparingTo("517.00");
         }
 
         @Test
@@ -101,26 +135,25 @@ class CriarReservaServiceTest {
             when(locacaoPort.existeOverlapNoPeriodo(any(), any(), any(), any())).thenReturn(false);
             when(locacaoPort.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
 
-            Locacao resultado = service.executar(1L, 10L, AMANHA, SEMANA, new BigDecimal("200.00"), null);
+            Locacao resultado = executarUmProduto(1L, 10L, AMANHA, SEMANA, new BigDecimal("200.00"), null);
 
             assertThat(resultado.getCaucao()).isEqualByComparingTo("200.00");
         }
 
         @Test
-        @DisplayName("deve calcular dias correto (inclusivo): 1 dia = dataInicio == dataFim - 1")
+        @DisplayName("deve calcular dias correto (inclusivo): 2 dias")
         void deveCalcularDiasInclusivo() {
-            // de amanha a depois de amanha = 2 dias
             LocalDate inicio = AMANHA;
-            LocalDate fim = AMANHA.plusDays(1);
+            LocalDate fim = AMANHA.plusDays(1); // 2 dias
 
             when(clientePort.buscarPorId(1L)).thenReturn(Optional.of(clienteAtivo));
             when(produtoPort.buscarPorId(10L)).thenReturn(Optional.of(produtoDisponivel));
             when(locacaoPort.existeOverlapNoPeriodo(any(), any(), any(), any())).thenReturn(false);
             when(locacaoPort.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
 
-            Locacao resultado = service.executar(1L, 10L, inicio, fim, null, null);
+            Locacao resultado = executarUmProduto(1L, 10L, inicio, fim, null, null);
 
-            // 2 dias: 89 * 2 + 100 = 278
+            // 89 * 2 + 100 = 278
             assertThat(resultado.getValorTotal()).isEqualByComparingTo("278.00");
         }
     }
@@ -132,7 +165,7 @@ class CriarReservaServiceTest {
         @Test
         @DisplayName("deve lancar BusinessException quando dataInicio == dataFim")
         void deveLancarExcecaoQuandoDatasIguais() {
-            assertThatThrownBy(() -> service.executar(1L, 10L, AMANHA, AMANHA, null, null))
+            assertThatThrownBy(() -> executarUmProduto(1L, 10L, AMANHA, AMANHA, null, null))
                     .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("anterior");
         }
@@ -140,7 +173,7 @@ class CriarReservaServiceTest {
         @Test
         @DisplayName("deve lancar BusinessException quando dataInicio > dataFim")
         void deveLancarExcecaoQuandoInicioDepoisFim() {
-            assertThatThrownBy(() -> service.executar(1L, 10L, SEMANA, AMANHA, null, null))
+            assertThatThrownBy(() -> executarUmProduto(1L, 10L, SEMANA, AMANHA, null, null))
                     .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("anterior");
         }
@@ -149,7 +182,7 @@ class CriarReservaServiceTest {
         @DisplayName("deve lancar BusinessException quando dataInicio e no passado")
         void deveLancarExcecaoQuandoInicioNoPassado() {
             LocalDate ontem = LocalDate.now().minusDays(1);
-            assertThatThrownBy(() -> service.executar(1L, 10L, ontem, SEMANA, null, null))
+            assertThatThrownBy(() -> executarUmProduto(1L, 10L, ontem, SEMANA, null, null))
                     .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("passado");
         }
@@ -164,7 +197,7 @@ class CriarReservaServiceTest {
         void deveLancarExcecaoClienteNaoEncontrado() {
             when(clientePort.buscarPorId(99L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> service.executar(99L, 10L, AMANHA, SEMANA, null, null))
+            assertThatThrownBy(() -> executarUmProduto(99L, 10L, AMANHA, SEMANA, null, null))
                     .isInstanceOf(EntityNotFoundException.class)
                     .hasMessageContaining("99");
         }
@@ -175,7 +208,7 @@ class CriarReservaServiceTest {
             clienteAtivo.setAtivo(false);
             when(clientePort.buscarPorId(1L)).thenReturn(Optional.of(clienteAtivo));
 
-            assertThatThrownBy(() -> service.executar(1L, 10L, AMANHA, SEMANA, null, null))
+            assertThatThrownBy(() -> executarUmProduto(1L, 10L, AMANHA, SEMANA, null, null))
                     .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("inativo");
         }
@@ -191,7 +224,7 @@ class CriarReservaServiceTest {
             when(clientePort.buscarPorId(1L)).thenReturn(Optional.of(clienteAtivo));
             when(produtoPort.buscarPorId(99L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> service.executar(1L, 99L, AMANHA, SEMANA, null, null))
+            assertThatThrownBy(() -> executarUmProduto(1L, 99L, AMANHA, SEMANA, null, null))
                     .isInstanceOf(EntityNotFoundException.class)
                     .hasMessageContaining("99");
         }
@@ -203,9 +236,28 @@ class CriarReservaServiceTest {
             when(clientePort.buscarPorId(1L)).thenReturn(Optional.of(clienteAtivo));
             when(produtoPort.buscarPorId(10L)).thenReturn(Optional.of(produtoDisponivel));
 
-            assertThatThrownBy(() -> service.executar(1L, 10L, AMANHA, SEMANA, null, null))
+            assertThatThrownBy(() -> executarUmProduto(1L, 10L, AMANHA, SEMANA, null, null))
                     .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("disponivel");
+        }
+
+        @Test
+        @DisplayName("deve lancar ConflictException quando segundo produto tem overlap (primeiro ok)")
+        void deveLancarExcecaoSegundoProdutoComOverlap() {
+            Produto produto2 = new Produto();
+            produto2.setId(20L);
+            produto2.setNome("Véu");
+            produto2.setValorDiaria(BigDecimal.TEN);
+            produto2.setDisponivel(true);
+
+            when(clientePort.buscarPorId(1L)).thenReturn(Optional.of(clienteAtivo));
+            when(produtoPort.buscarPorId(10L)).thenReturn(Optional.of(produtoDisponivel));
+            when(produtoPort.buscarPorId(20L)).thenReturn(Optional.of(produto2));
+            when(locacaoPort.existeOverlapNoPeriodo(eq(10L), any(), any(), isNull())).thenReturn(false);
+            when(locacaoPort.existeOverlapNoPeriodo(eq(20L), any(), any(), isNull())).thenReturn(true);
+
+            assertThatThrownBy(() -> service.executar(1L, List.of(10L, 20L), AMANHA, SEMANA, null, null))
+                    .isInstanceOf(ConflictException.class);
         }
     }
 
@@ -220,7 +272,7 @@ class CriarReservaServiceTest {
             when(produtoPort.buscarPorId(10L)).thenReturn(Optional.of(produtoDisponivel));
             when(locacaoPort.existeOverlapNoPeriodo(10L, AMANHA, SEMANA, null)).thenReturn(true);
 
-            assertThatThrownBy(() -> service.executar(1L, 10L, AMANHA, SEMANA, null, null))
+            assertThatThrownBy(() -> executarUmProduto(1L, 10L, AMANHA, SEMANA, null, null))
                     .isInstanceOf(ConflictException.class)
                     .hasMessageContaining(AMANHA.toString())
                     .hasMessageContaining(SEMANA.toString());
@@ -234,7 +286,7 @@ class CriarReservaServiceTest {
             when(locacaoPort.existeOverlapNoPeriodo(10L, AMANHA, SEMANA, null)).thenReturn(false);
             when(locacaoPort.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
 
-            assertThatCode(() -> service.executar(1L, 10L, AMANHA, SEMANA, null, null))
+            assertThatCode(() -> executarUmProduto(1L, 10L, AMANHA, SEMANA, null, null))
                     .doesNotThrowAnyException();
         }
     }

@@ -12,8 +12,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 
 import com.jtarcio.closetrental.modules.locacoes.infrastructure.persistence.LocacaoEntity;
 
@@ -21,14 +19,14 @@ import com.jtarcio.closetrental.modules.locacoes.infrastructure.persistence.Loca
  * Repositório de leitura do módulo de Relatórios.
  *
  * Todas as queries usam projeções (record DTO ou interface) — sem carregar entidades completas.
- * Cada query se apoia nos índices declarados nas entidades para garantir O(log n).
+ * Após migração para locação multi-produto, as queries de produto usam join com ItemLocacaoEntity.
  */
 public interface RelatorioRepositoryJpa extends JpaRepository<LocacaoEntity, Long> {
 
     /**
      * Peças disponíveis em uma data: produtos sem locação ativa (RESERVADO ou RETIRADO)
      * que cubra a data consultada.
-     * Usa: idx_locacoes_produto_periodo + idx_locacoes_status → O(log n)
+     * Usa join com ItemLocacaoEntity para localizar produto_id após migração multi-produto.
      */
     @Query("""
         SELECT new com.jtarcio.closetrental.modules.relatorios.api.dto.DisponibilidadeDataResponse(
@@ -37,8 +35,9 @@ public interface RelatorioRepositoryJpa extends JpaRepository<LocacaoEntity, Lon
         FROM ProdutoEntity p
         WHERE p.disponivel = true
           AND NOT EXISTS (
-              SELECT 1 FROM LocacaoEntity l
-              WHERE l.produtoId = p.id
+              SELECT 1 FROM ItemLocacaoEntity i
+              JOIN LocacaoEntity l ON l.id = i.locacaoId
+              WHERE i.produtoId = p.id
                 AND l.status IN ('RESERVADO', 'RETIRADO')
                 AND l.dataInicio <= :data
                 AND l.dataFim >= :data
@@ -50,11 +49,13 @@ public interface RelatorioRepositoryJpa extends JpaRepository<LocacaoEntity, Lon
 
     /**
      * Histórico de locações de um cliente, ordenado por data de início decrescente.
+     * Retorna uma linha por locação com a lista de produtoIds como string concatenada
+     * (via subquery não é possível em JPQL DTO constructor — retorna locacaoId para o frontend buscar itens).
      * Usa: idx_locacoes_cliente → O(log n)
      */
     @Query("""
         SELECT new com.jtarcio.closetrental.modules.relatorios.api.dto.HistoricoClienteResponse(
-            l.id, l.produtoId, CAST(l.status AS string),
+            l.id, CAST(l.status AS string),
             l.dataInicio, l.dataFim, l.valorTotal, l.multa, l.devolucaoAt
         )
         FROM LocacaoEntity l
@@ -79,37 +80,40 @@ public interface RelatorioRepositoryJpa extends JpaRepository<LocacaoEntity, Lon
 
     /**
      * Ranking de produtos por número de locações (qualquer status exceto CANCELADO),
-     * com JOIN em ProdutoEntity para obter nome e categoria.
-     * Paginado via Pageable para evitar LIMIT no JPQL (não suportado em todas as versões).
+     * usando join com ItemLocacaoEntity para agrupar por produto.
      * Complexidade: O(n log n) no GROUP BY, limitado pelo PageRequest.
      */
     @Query("""
         SELECT new com.jtarcio.closetrental.modules.relatorios.api.dto.PecaMaisAlugadaResponse(
-            p.id, p.nome, p.categoria, COUNT(l.id)
+            p.id, p.nome, p.categoria, COUNT(DISTINCT l.id)
         )
-        FROM LocacaoEntity l
-        JOIN ProdutoEntity p ON p.id = l.produtoId
+        FROM ItemLocacaoEntity i
+        JOIN LocacaoEntity l ON l.id = i.locacaoId
+        JOIN ProdutoEntity p ON p.id = i.produtoId
         WHERE l.status <> 'CANCELADO'
         GROUP BY p.id, p.nome, p.categoria
-        ORDER BY COUNT(l.id) DESC
+        ORDER BY COUNT(DISTINCT l.id) DESC
         """)
     Page<PecaMaisAlugadaResponse> findPecasMaisAlugadas(Pageable pageable);
 
     /**
      * Locações RETIRADAS com dataFim anterior a hoje (atrasos não devolvidos).
-     * Usa: idx_locacoes_status → O(log n)
+     * Retorna uma linha por item — no caso de locação multi-produto, aparece uma linha por produto.
+     * O service agrupa/filtra conforme necessário.
+     * Usa: idx_locacoes_status + idx_itens_locacao_locacao_id → O(log n)
      */
     @Query("""
         SELECT new com.jtarcio.closetrental.modules.relatorios.api.dto.AtrasosPendentesResponse(
-            l.id, l.clienteId, l.produtoId, l.dataFim,
+            l.id, l.clienteId, i.produtoId, l.dataFim,
             0L,
-            l.valorDiaria,
-            l.valorDiaria
+            i.valorDiaria,
+            i.valorDiaria
         )
         FROM LocacaoEntity l
+        JOIN l.itens i
         WHERE l.status = 'RETIRADO'
           AND l.dataFim < :hoje
-        ORDER BY l.dataFim ASC
+        ORDER BY l.dataFim ASC, i.id ASC
         """)
     Page<AtrasosPendentesResponse> findAtrasosPendentes(
             @Param("hoje") LocalDate hoje, Pageable pageable);

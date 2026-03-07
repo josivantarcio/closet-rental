@@ -4,7 +4,7 @@ import com.jtarcio.closetrental.modules.catalogo.domain.model.Produto;
 import com.jtarcio.closetrental.modules.catalogo.domain.ports.ProdutoRepositoryPort;
 import com.jtarcio.closetrental.modules.catalogo.infrastructure.mapper.ProdutoMapper;
 import com.jtarcio.closetrental.modules.catalogo.infrastructure.persistence.ProdutoRepositoryJpa;
-import com.jtarcio.closetrental.modules.locacoes.infrastructure.persistence.LocacaoRepositoryJpa;
+import com.jtarcio.closetrental.modules.locacoes.infrastructure.persistence.ItemLocacaoRepositoryJpa;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +19,7 @@ import java.util.UUID;
 public class ProdutoRepositoryAdapter implements ProdutoRepositoryPort {
 
     private final ProdutoRepositoryJpa jpaRepository;
-    private final LocacaoRepositoryJpa locacaoRepositoryJpa;
+    private final ItemLocacaoRepositoryJpa itemLocacaoRepositoryJpa;
     private final ProdutoMapper mapper;
 
     @Override
@@ -55,6 +55,6 @@ public class ProdutoRepositoryAdapter implements ProdutoRepositoryPort {
 
     @Override
     public boolean existeEmLocacaoAtiva(Long id) {
-        return locacaoRepositoryJpa.existeLocacaoAtivaParaProduto(id);
+        return itemLocacaoRepositoryJpa.existeLocacaoAtivaParaProduto(id);
     }
 }

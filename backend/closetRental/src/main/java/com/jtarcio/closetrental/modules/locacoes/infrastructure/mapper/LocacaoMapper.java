@@ -7,9 +7,10 @@ import org.mapstruct.MappingConstants;
 
 /**
  * Mapper MapStruct entre domain {@link Locacao} e JPA {@link LocacaoEntity}.
- * Todos os campos têm mesmo nome — sem necessidade de @Mapping explícito.
+ * O campo {@code itens} é mapeado automaticamente via {@link ItemLocacaoMapper}.
  */
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
+        uses = ItemLocacaoMapper.class)
 public interface LocacaoMapper {
 
     LocacaoEntity toEntity(Locacao locacao);

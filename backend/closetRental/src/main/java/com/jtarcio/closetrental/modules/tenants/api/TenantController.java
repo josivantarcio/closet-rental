@@ -31,6 +31,9 @@ public class TenantController {
         tenant.setNome(request.nome());
         tenant.setSlug(request.slug());
         tenant.setPlano(request.plano());
+        if (request.pctCancelamento3d() != null) tenant.setPctCancelamento3d(request.pctCancelamento3d());
+        if (request.pctCancelamento1d() != null) tenant.setPctCancelamento1d(request.pctCancelamento1d());
+        if (request.pctCancelamento0d() != null) tenant.setPctCancelamento0d(request.pctCancelamento0d());
         return toResponse(tenantService.criar(tenant));
     }
 
@@ -59,6 +62,9 @@ public class TenantController {
     }
 
     private TenantResponse toResponse(Tenant t) {
-        return new TenantResponse(t.getId(), t.getNome(), t.getSlug(), t.getPlano(), t.isAtivo(), t.getCreatedAt());
+        return new TenantResponse(
+                t.getId(), t.getNome(), t.getSlug(), t.getPlano(), t.isAtivo(),
+                t.getPctCancelamento3d(), t.getPctCancelamento1d(), t.getPctCancelamento0d(),
+                t.getCreatedAt());
     }
 }

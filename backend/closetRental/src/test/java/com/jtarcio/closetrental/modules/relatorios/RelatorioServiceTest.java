@@ -88,7 +88,7 @@ class RelatorioServiceTest {
         @DisplayName("retorna histórico paginado do cliente")
         void retornaHistorico() {
             HistoricoClienteResponse dto = new HistoricoClienteResponse(
-                    10L, 1L, "DEVOLVIDO",
+                    10L, "DEVOLVIDO",
                     LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 3),
                     new BigDecimal("270.00"), null, LocalDateTime.now());
             when(relatorioPort.historicoCliente(eq(5L), any())).thenReturn(new PageImpl<>(List.of(dto)));

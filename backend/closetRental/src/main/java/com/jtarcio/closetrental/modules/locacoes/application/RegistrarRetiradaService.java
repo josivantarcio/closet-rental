@@ -2,6 +2,7 @@ package com.jtarcio.closetrental.modules.locacoes.application;
 
 import com.jtarcio.closetrental.modules.catalogo.domain.ports.ProdutoRepositoryPort;
 import com.jtarcio.closetrental.modules.estoque.application.EstoqueService;
+import com.jtarcio.closetrental.modules.locacoes.domain.model.ItemLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.Locacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.ports.LocacaoRepositoryPort;
@@ -21,8 +22,7 @@ import java.time.LocalDateTime;
  * 1. Locacao deve existir e estar no status RESERVADO
  * 2. Registra retiradaAt = agora
  * 3. Muda status para RETIRADO
- * 4. Marca o produto como indisponivel
- * 5. Registra movimentacao SAIDA no estoque
+ * 4. Para cada item: marca o produto como indisponivel e registra SAIDA no estoque
  */
 @Slf4j
 @Service
@@ -44,21 +44,21 @@ public class RegistrarRetiradaService {
                 ". Status esperado: " + StatusLocacao.RESERVADO);
         }
 
-        // Marca produto como indisponivel
-        var produto = produtoPort.buscarPorId(locacao.getProdutoId())
-                .orElseThrow(() -> new EntityNotFoundException("Produto nao encontrado com id: " + locacao.getProdutoId()));
-        produto.marcarIndisponivel();
-        produtoPort.salvar(produto);
+        // Para cada produto na locação: marcar indisponível + registrar saída no estoque
+        for (ItemLocacao item : locacao.getItens()) {
+            var produto = produtoPort.buscarPorId(item.getProdutoId())
+                    .orElseThrow(() -> new EntityNotFoundException("Produto nao encontrado com id: " + item.getProdutoId()));
+            produto.marcarIndisponivel();
+            produtoPort.salvar(produto);
+            estoqueService.registrarSaida(item.getProdutoId(), locacaoId, "sistema");
+        }
 
         locacao.setRetiradaAt(LocalDateTime.now());
         locacao.setStatus(StatusLocacao.RETIRADO);
         Locacao salva = locacaoPort.salvar(locacao);
 
-        // Registra movimentacao de estoque
-        estoqueService.registrarSaida(locacao.getProdutoId(), locacaoId, "sistema");
-
-        log.info("Retirada registrada: locacaoId={}, produtoId={}, retiradaAt={}",
-                salva.getId(), salva.getProdutoId(), salva.getRetiradaAt());
+        log.info("Retirada registrada: locacaoId={}, produtos={}, retiradaAt={}",
+                salva.getId(), salva.getProdutoIds(), salva.getRetiradaAt());
         return salva;
     }
 }

@@ -5,11 +5,14 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
  * Aggregate Root do domínio de locações.
  * Encapsula todo o ciclo de vida: reserva, retirada, devolução e cancelamento.
+ * Suporta múltiplos produtos por locação via List<ItemLocacao>.
  * Nenhuma dependência de Spring ou JPA.
  */
 public class Locacao {
@@ -17,16 +20,19 @@ public class Locacao {
     private Long id;
     private UUID tenantId;
     private Long clienteId;
-    private Long produtoId;
 
     private LocalDate dataInicio;
     private LocalDate dataFim;
 
     private StatusLocacao status;
 
-    private BigDecimal valorDiaria;
+    private List<ItemLocacao> itens = new ArrayList<>();
+
     private BigDecimal caucao;
+    private StatusCaucao statusCaucao = StatusCaucao.PENDENTE;
+    private BigDecimal caucaoRetida;
     private BigDecimal multa;
+    private BigDecimal multaCancelamento;
     private BigDecimal valorTotal;
 
     private LocalDateTime retiradaAt;
@@ -53,21 +59,25 @@ public class Locacao {
     }
 
     /**
-     * Calcula o valor total: valorDiaria * dias + caucao.
-     * Complexidade: O(1).
+     * Calcula o valor total: soma dos subtotais dos itens + caução.
+     * Subtotal de cada item = valorDiaria * dias.
+     * Complexidade: O(n) onde n = número de itens (tipicamente pequeno, ≤ 10).
      */
     public BigDecimal calcularValorTotal() {
-        return valorDiaria
-                .multiply(BigDecimal.valueOf(calcularDias()))
+        long dias = calcularDias();
+        BigDecimal somaItens = itens.stream()
+                .map(item -> item.calcularSubtotal(dias))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return somaItens
                 .add(caucao != null ? caucao : BigDecimal.ZERO)
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
     /**
      * Calcula a multa por atraso.
-     * multa = percentualDiario * valorDiaria * diasAtraso.
+     * multa = percentualDiario * soma(valorDiaria dos itens) * diasAtraso.
      * Retorna ZERO se não há atraso.
-     * Complexidade: O(1).
+     * Complexidade: O(n) onde n = número de itens.
      *
      * @param devolucaoReal data/hora real da devolução
      * @param percentualMultaDiaria percentual sobre a diária por dia de atraso (ex: 0.10 = 10%)
@@ -77,10 +87,49 @@ public class Locacao {
             return BigDecimal.ZERO;
         }
         long diasAtraso = ChronoUnit.DAYS.between(dataFim, devolucaoReal.toLocalDate());
+        BigDecimal somadiarias = itens.stream()
+                .map(ItemLocacao::getValorDiaria)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         return percentualMultaDiaria
-                .multiply(valorDiaria)
+                .multiply(somadiarias)
                 .multiply(BigDecimal.valueOf(diasAtraso))
                 .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * Retorna IDs de todos os produtos na locação.
+     * Complexidade: O(n).
+     */
+    public List<Long> getProdutoIds() {
+        return itens.stream().map(ItemLocacao::getProdutoId).toList();
+    }
+
+    /**
+     * Aplica o destino da caução na devolução.
+     *
+     * Regras:
+     * - valorRetencao == null ou 0  → LIBERADA (sem retenção)
+     * - 0 < valorRetencao < caucao  → RETIDA_PARCIAL
+     * - valorRetencao >= caucao     → RETIDA_TOTAL (retém o teto = caucao)
+     *
+     * @param valorRetencao valor a reter da caução (null = liberar tudo)
+     */
+    public void aplicarDestinoCaucao(BigDecimal valorRetencao) {
+        if (caucao == null || caucao.compareTo(BigDecimal.ZERO) == 0) {
+            statusCaucao = StatusCaucao.LIBERADA;
+            caucaoRetida = BigDecimal.ZERO;
+            return;
+        }
+        if (valorRetencao == null || valorRetencao.compareTo(BigDecimal.ZERO) <= 0) {
+            statusCaucao = StatusCaucao.LIBERADA;
+            caucaoRetida = BigDecimal.ZERO;
+        } else if (valorRetencao.compareTo(caucao) >= 0) {
+            statusCaucao = StatusCaucao.RETIDA_TOTAL;
+            caucaoRetida = caucao;
+        } else {
+            statusCaucao = StatusCaucao.RETIDA_PARCIAL;
+            caucaoRetida = valorRetencao.setScale(2, java.math.RoundingMode.HALF_UP);
+        }
     }
 
     /**
@@ -124,9 +173,6 @@ public class Locacao {
     public Long getClienteId() { return clienteId; }
     public void setClienteId(Long clienteId) { this.clienteId = clienteId; }
 
-    public Long getProdutoId() { return produtoId; }
-    public void setProdutoId(Long produtoId) { this.produtoId = produtoId; }
-
     public LocalDate getDataInicio() { return dataInicio; }
     public void setDataInicio(LocalDate dataInicio) { this.dataInicio = dataInicio; }
 
@@ -136,14 +182,23 @@ public class Locacao {
     public StatusLocacao getStatus() { return status; }
     public void setStatus(StatusLocacao status) { this.status = status; }
 
-    public BigDecimal getValorDiaria() { return valorDiaria; }
-    public void setValorDiaria(BigDecimal valorDiaria) { this.valorDiaria = valorDiaria; }
+    public List<ItemLocacao> getItens() { return itens; }
+    public void setItens(List<ItemLocacao> itens) { this.itens = itens != null ? itens : new ArrayList<>(); }
 
     public BigDecimal getCaucao() { return caucao; }
     public void setCaucao(BigDecimal caucao) { this.caucao = caucao; }
 
+    public StatusCaucao getStatusCaucao() { return statusCaucao; }
+    public void setStatusCaucao(StatusCaucao statusCaucao) { this.statusCaucao = statusCaucao; }
+
+    public BigDecimal getCaucaoRetida() { return caucaoRetida; }
+    public void setCaucaoRetida(BigDecimal caucaoRetida) { this.caucaoRetida = caucaoRetida; }
+
     public BigDecimal getMulta() { return multa; }
     public void setMulta(BigDecimal multa) { this.multa = multa; }
+
+    public BigDecimal getMultaCancelamento() { return multaCancelamento; }
+    public void setMultaCancelamento(BigDecimal multaCancelamento) { this.multaCancelamento = multaCancelamento; }
 
     public BigDecimal getValorTotal() { return valorTotal; }
     public void setValorTotal(BigDecimal valorTotal) { this.valorTotal = valorTotal; }

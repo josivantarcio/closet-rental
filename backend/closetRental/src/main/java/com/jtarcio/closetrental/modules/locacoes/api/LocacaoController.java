@@ -1,6 +1,7 @@
 package com.jtarcio.closetrental.modules.locacoes.api;
 
 import com.jtarcio.closetrental.modules.locacoes.api.dto.*;
+import com.jtarcio.closetrental.modules.locacoes.domain.model.DanoProduto;
 import com.jtarcio.closetrental.modules.locacoes.application.*;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,9 +11,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+
+import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -30,6 +37,7 @@ public class LocacaoController {
     private final RegistrarDevolucaoService registrarDevolucaoService;
     private final CancelarReservaService cancelarReservaService;
     private final LocacaoQueryService queryService;
+    private final ContratoService contratoService;
 
     @PostMapping("/reservar")
     @ResponseStatus(HttpStatus.CREATED)
@@ -42,10 +50,13 @@ public class LocacaoController {
         @ApiResponse(responseCode = "409", description = "Produto ja reservado no periodo informado")
     })
     public LocacaoResponse reservar(@Valid @RequestBody ReservaRequest request) {
+        List<Long> produtoIds = request.itens().stream()
+                .map(com.jtarcio.closetrental.modules.locacoes.api.dto.ItemReservaRequest::produtoId)
+                .toList();
         return LocacaoResponse.fromDomain(
             criarReservaService.executar(
                 request.clienteId(),
-                request.produtoId(),
+                produtoIds,
                 request.dataInicio(),
                 request.dataFim(),
                 request.caucao(),
@@ -77,7 +88,17 @@ public class LocacaoController {
     public LocacaoResponse devolver(@PathVariable Long id,
                                     @RequestBody(required = false) DevolucaoRequest request) {
         String obs = (request != null) ? request.observacoes() : null;
-        return LocacaoResponse.fromDomain(registrarDevolucaoService.executar(id, obs));
+        java.math.BigDecimal retencao = (request != null) ? request.valorRetencaoCaucao() : null;
+        java.util.List<DanoProduto> danos = (request != null && request.danos() != null)
+                ? request.danos().stream().map(d -> {
+                    DanoProduto dano = new DanoProduto();
+                    dano.setItemLocacaoId(d.itemLocacaoId());
+                    dano.setDescricao(d.descricao());
+                    dano.setValorDesconto(d.valorDesconto());
+                    return dano;
+                  }).toList()
+                : null;
+        return LocacaoResponse.fromDomain(registrarDevolucaoService.executar(id, obs, danos, retencao));
     }
 
     @PostMapping("/{id}/cancelar")
@@ -92,6 +113,25 @@ public class LocacaoController {
                                     @RequestBody(required = false) CancelamentoRequest request) {
         String motivo = (request != null) ? request.motivo() : null;
         return LocacaoResponse.fromDomain(cancelarReservaService.executar(id, motivo));
+    }
+
+    @GetMapping(value = "/{id}/contrato", produces = "application/pdf")
+    @Operation(summary = "Gerar contrato em PDF",
+               description = "Gera e retorna o contrato de locacao em formato PDF para download.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "PDF gerado com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Locacao nao encontrada")
+    })
+    public ResponseEntity<byte[]> gerarContrato(@PathVariable Long id) {
+        byte[] pdf = contratoService.gerarContrato(id);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(
+            ContentDisposition.attachment()
+                .filename("contrato-locacao-" + id + ".pdf")
+                .build()
+        );
+        return ResponseEntity.ok().headers(headers).body(pdf);
     }
 
     @GetMapping("/{id}")

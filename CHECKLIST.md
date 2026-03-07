@@ -1,6 +1,6 @@
 # CHECKLIST COMPLETO — Sistema Closet Rental (Atelier)
-> Loja de Aluguel de Roupas & Vestidos | Última atualização: 2026-03-05 (v2.0.0-fase2)
-> Progresso global: Fase 2 concluída | 156 testes backend | BUILD SUCCESS
+> Loja de Aluguel de Roupas & Vestidos | Última atualização: 2026-03-07 (v2.0.0-fase8)
+> Progresso global: Fase 7 + Fase 8 concluídas | 156 testes backend | BUILD SUCCESS
 
 ---
 
@@ -256,20 +256,36 @@
 - [ ] `POST /v1/catalogo/{id}/imagem` — multipart upload + thumbnail
 - [ ] Frontend: drag & drop + preview
 
-### FASE 7 — Portal do Cliente
-- [ ] Área `/minha-conta` para `ROLE_CLIENTE`
-- [ ] Histórico de locações, pagamentos, download de contratos
+### FASE 7 — Portal do Cliente ✅
+- [x] Flyway V13: `cliente_id` nullable FK em `usuarios`
+- [x] `MinhaContaController`: GET perfil, PATCH senha, GET locações, GET pagamentos, GET contrato PDF
+- [x] `MinhaContaService`: `validarPosse()` (403 se locação não pertence ao cliente)
+- [x] `listarIdsPorCliente` JPQL (O(log n)) + `listarPorLocacoes` IN query (sem N+1)
+- [x] Frontend: route group `(cliente)` com layout/sidebar próprio
+- [x] `/minha-conta` — perfil + alterar senha
+- [x] `/minha-conta/locacoes` — tabela paginada + link contrato PDF
+- [x] `/minha-conta/pagamentos` — tabela paginada + resumo
+- [x] `minhaContaService.ts` + `PerfilResponse` / `AlterarMinhaSenhaRequest`
+- [x] Sidebar principal com botão "Minha Conta" visível para ROLE_CLIENTE
 
-### FASE 8 — Infraestrutura AWS
-- [ ] ECS Fargate + RDS PostgreSQL Multi-AZ
-- [ ] AWS S3 + CloudFront + SES + Secrets Manager
-- [ ] Application Load Balancer + ACM (HTTPS)
-- [ ] GitHub Actions → ECR → ECS (rolling deploy)
-- [ ] Frontend: Vercel (gratuito, integração nativa Next.js)
+### FASE 8 — Infraestrutura AWS ✅
+- [x] Terraform IaC modular: vpc, ecr, rds, secrets, s3, alb, ecs, ses
+- [x] VPC com subnets públicas/privadas em 2 AZs + NAT Gateway
+- [x] ECS Fargate: rolling deploy + circuit breaker + rollback automático
+- [x] RDS PostgreSQL 16: encryption, Multi-AZ var, backup 7d, Performance Insights
+- [x] S3 + CloudFront OAC: imagens servidas via CDN, bucket privado
+- [x] ALB com HTTPS/TLS 1.3 + health check em `/actuator/health`
+- [x] SES com DKIM + IAM SMTP user dedicado
+- [x] Secrets Manager: todos os segredos injetados via `valueFrom` no ECS
+- [x] GitHub Actions `deploy.yml`: test → ECR build+push → ECS rolling update
+- [x] `application-prod.yml`: Actuator, Hikari pool, Swagger off, storage=s3
+- [x] `netlify.toml`: security headers + redirect HTTP→HTTPS (frontend no Netlify)
+- [x] `bootstrap.sh` para criar S3 state + DynamoDB lock
+- [x] `infra/README.md` com guia completo + estimativa de custos (~$77/mês)
 
 ### Débitos técnicos menores
 - [ ] Testcontainers — testes de integração com PostgreSQL real
-- [ ] Spring Actuator — health-check endpoint (`/actuator/health`)
+- [x] Spring Actuator — health-check endpoint (`/actuator/health`) — Fase 8
 - [ ] Rate limiting por IP — Bucket4j no endpoint de login
 - [ ] Filtro por categoria/tamanho/cor no catálogo (query params)
 
@@ -290,11 +306,14 @@
 | Documentação | ✅ | — | — | — |
 | DevOps | ✅ | — | — | — |
 | Usuários/Auth | ✅ | ✅ | ✅ | ✅ (unit) |
-| Notificações | ❌ | ❌ | — | — |
+| Notificações | ✅ | ✅ | ✅ | — |
 | Multi-Tenant | ✅ | ✅ 9 | — | — |
+| Upload S3 | ✅ | — | ✅ | — |
+| Portal Cliente | ✅ | — | ✅ | — |
+| Infra AWS | ✅ IaC | — | ✅ Netlify | — |
 
 **Testes backend:** 156 | **Testes frontend (unit):** 59 | **Testes E2E:** 25
-**Releases:** v0.1.0 → v1.6.0 → v2.0-fase1 → v2.0-fase2 | **BUILD SUCCESS**
+**Releases:** v0.1.0 → v1.6.0 → v2.0-fase1 → v2.0-fase8 | **BUILD SUCCESS**
 
 ---
 

@@ -62,6 +62,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/v1/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/logout").permitAll()
 
+                        // Portal do cliente — self-service
+                        .requestMatchers("/v1/minha-conta/**").hasAnyRole("CLIENTE", "ADMIN", "ATENDENTE", "SUPER_ADMIN")
+
                         // Tenants — somente SUPER_ADMIN
                         .requestMatchers("/v1/tenants/**").hasRole("SUPER_ADMIN")
 

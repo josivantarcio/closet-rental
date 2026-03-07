@@ -47,6 +47,10 @@ public class UsuarioEntity {
     @Column(name = "tenant_id")
     private UUID tenantId;
 
+    // nullable: apenas ROLE_CLIENTE tem vínculo com um registro de cliente
+    @Column(name = "cliente_id")
+    private Long clienteId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

@@ -58,6 +58,7 @@ public class UsuarioService {
         existente.setNome(dados.getNome());
         existente.setEmail(dados.getEmail());
         existente.setRole(dados.getRole());
+        existente.setClienteId(dados.getClienteId());
         log.info("Atualizando usuário id={}", id);
         return repositoryPort.salvar(existente);
     }

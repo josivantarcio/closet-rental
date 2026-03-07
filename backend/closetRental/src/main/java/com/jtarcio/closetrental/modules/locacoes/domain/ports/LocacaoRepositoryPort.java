@@ -61,4 +61,7 @@ public interface LocacaoRepositoryPort {
 
     /** Locações RETIRADAS com dataFim anterior a hoje (em atraso). */
     List<Locacao> buscarRetiradosEmAtraso(LocalDate hoje);
+
+    /** Retorna apenas os IDs das locações de um cliente — usado para buscar pagamentos associados. */
+    List<Long> listarIdsPorCliente(UUID tenantId, Long clienteId);
 }

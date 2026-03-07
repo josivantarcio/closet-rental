@@ -9,5 +9,6 @@ public record UsuarioResponse(
         String email,
         String role,
         boolean ativo,
+        Long clienteId,
         LocalDateTime createdAt
 ) {}

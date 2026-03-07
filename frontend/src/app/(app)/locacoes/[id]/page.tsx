@@ -107,7 +107,7 @@ export default function LocacaoDetailPage({
     !jaTemPagamentoAprovado;
 
   const valorPagamento = locacao
-    ? locacao.valorTotal + (locacao.multaAtraso ?? 0)
+    ? locacao.valorTotal + (locacao.multa ?? 0)
     : 0;
 
   return (
@@ -145,24 +145,24 @@ export default function LocacaoDetailPage({
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                   <dt className="text-muted-foreground">Cliente</dt>
                   <dd className="font-medium">{locacao.clienteNome ?? `#${locacao.clienteId}`}</dd>
-                  <dt className="text-muted-foreground">Produto</dt>
-                  <dd className="font-medium">{locacao.produtoNome ?? `#${locacao.produtoId}`}</dd>
+                  <dt className="text-muted-foreground">Peça(s)</dt>
+                  <dd className="font-medium">
+                    {locacao.itens?.map((i) => i.nomeProduto).join(", ") || `${locacao.itens?.length ?? 0} peça(s)`}
+                  </dd>
                   <dt className="text-muted-foreground">Período</dt>
                   <dd>{formatDate(locacao.dataInicio)} → {formatDate(locacao.dataFim)}</dd>
-                  <dt className="text-muted-foreground">Valor Diária</dt>
-                  <dd>{formatCurrency(locacao.valorDiaria)}</dd>
+                  <dt className="text-muted-foreground">Dias</dt>
+                  <dd>{locacao.diasLocacao} dias</dd>
                   <dt className="text-muted-foreground">Caução</dt>
-                  <dd>{formatCurrency(locacao.caucao)}</dd>
+                  <dd>{formatCurrency(locacao.caucao ?? 0)}</dd>
                   <dt className="text-muted-foreground">Total</dt>
                   <dd className="font-bold text-primary">{formatCurrency(locacao.valorTotal)}</dd>
-                  {locacao.multaAtraso != null && locacao.multaAtraso > 0 && (
+                  {locacao.multa != null && locacao.multa > 0 && (
                     <>
-                      <dt className="text-muted-foreground">Multa</dt>
-                      <dd className="text-amber-400 font-semibold">{formatCurrency(locacao.multaAtraso)}</dd>
+                      <dt className="text-muted-foreground">Multa Atraso</dt>
+                      <dd className="text-amber-400 font-semibold">{formatCurrency(locacao.multa)}</dd>
                     </>
                   )}
-                  <dt className="text-muted-foreground">Operador</dt>
-                  <dd>{locacao.operador}</dd>
                 </dl>
 
                 {/* Ações secundárias */}
@@ -313,10 +313,10 @@ export default function LocacaoDetailPage({
                 <span className="text-muted-foreground">Valor Total</span>
                 <span className="font-medium">{formatCurrency(locacao?.valorTotal ?? 0)}</span>
               </div>
-              {locacao?.multaAtraso != null && locacao.multaAtraso > 0 && (
+              {locacao?.multa != null && locacao.multa > 0 && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Multa por Atraso</span>
-                  <span className="text-amber-400 font-medium">{formatCurrency(locacao.multaAtraso)}</span>
+                  <span className="text-amber-400 font-medium">{formatCurrency(locacao.multa)}</span>
                 </div>
               )}
               <div className="flex justify-between border-t border-border pt-1 mt-1">

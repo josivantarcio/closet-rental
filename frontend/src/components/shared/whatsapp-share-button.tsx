@@ -12,7 +12,7 @@ interface WhatsAppShareButtonProps {
 
 function montarMensagem(locacao: LocacaoResponse): string {
   const cliente = locacao.clienteNome ?? `#${locacao.clienteId}`;
-  const produto = locacao.produtoNome ?? `#${locacao.produtoId}`;
+  const produto = locacao.itens?.map((i) => i.nomeProduto).join(", ") ?? `Locação #${locacao.id}`;
   const periodo = `${formatDate(locacao.dataInicio)} até ${formatDate(locacao.dataFim)}`;
 
   const statusLabel: Record<string, string> = {
@@ -31,11 +31,11 @@ function montarMensagem(locacao: LocacaoResponse): string {
     `📌 Status: ${statusLabel[locacao.status] ?? locacao.status}`,
     "",
     `💰 Valor Total: ${formatCurrency(locacao.valorTotal)}`,
-    `🔒 Caução: ${formatCurrency(locacao.caucao)}`,
+    `🔒 Caução: ${formatCurrency(locacao.caucao ?? 0)}`,
   ];
 
-  if (locacao.multaAtraso != null && locacao.multaAtraso > 0) {
-    linhas.push(`⚠️ Multa por Atraso: ${formatCurrency(locacao.multaAtraso)}`);
+  if (locacao.multa != null && locacao.multa > 0) {
+    linhas.push(`⚠️ Multa por Atraso: ${formatCurrency(locacao.multa)}`);
   }
 
   if (locacao.status === "CANCELADO") {

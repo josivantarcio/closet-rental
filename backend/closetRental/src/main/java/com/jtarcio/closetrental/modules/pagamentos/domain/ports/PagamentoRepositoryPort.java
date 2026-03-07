@@ -5,6 +5,7 @@ import com.jtarcio.closetrental.modules.pagamentos.domain.model.StatusPagamento;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,4 +25,6 @@ public interface PagamentoRepositoryPort {
     Page<Pagamento> listarPorStatus(UUID tenantId, StatusPagamento status, Pageable pageable);
 
     Page<Pagamento> listarTodos(UUID tenantId, Pageable pageable);
+
+    Page<Pagamento> listarPorLocacoes(Collection<Long> locacaoIds, Pageable pageable);
 }

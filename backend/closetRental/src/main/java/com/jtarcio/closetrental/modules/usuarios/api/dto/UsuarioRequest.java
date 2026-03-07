@@ -21,5 +21,8 @@ public record UsuarioRequest(
         String senha,
 
         @NotBlank(message = "Role é obrigatória")
-        String role
+        String role,
+
+        // Opcional: vincula usuário CLIENTE a um registro de cliente
+        Long clienteId
 ) {}

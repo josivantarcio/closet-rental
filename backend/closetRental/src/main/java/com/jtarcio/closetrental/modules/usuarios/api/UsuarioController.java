@@ -103,13 +103,14 @@ public class UsuarioController {
         u.setUsername(request.username());
         u.setEmail(request.email());
         u.setRole(request.role());
+        u.setClienteId(request.clienteId());
         return u;
     }
 
     private UsuarioResponse toResponse(Usuario u) {
         return new UsuarioResponse(
                 u.getId(), u.getNome(), u.getUsername(),
-                u.getEmail(), u.getRole(), u.isAtivo(), u.getCreatedAt()
+                u.getEmail(), u.getRole(), u.isAtivo(), u.getClienteId(), u.getCreatedAt()
         );
     }
 }

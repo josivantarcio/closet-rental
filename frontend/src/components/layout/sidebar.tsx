@@ -13,6 +13,7 @@ import {
   BarChart3,
   LogOut,
   Shirt,
+  UserCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth.store";
@@ -31,7 +32,8 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { user, logout } = useAuthStore();
+  const { user, logout, hasRole } = useAuthStore();
+  const isCliente = hasRole("CLIENTE");
 
   return (
     <aside className="flex h-screen w-60 flex-col border-r border-border bg-sidebar">
@@ -92,6 +94,19 @@ export function Sidebar() {
             {user?.roles?.[0]?.replace("ROLE_", "") ?? "—"}
           </p>
         </div>
+        {isCliente && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground mb-1"
+            asChild
+          >
+            <Link href="/minha-conta">
+              <UserCircle className="h-4 w-4" />
+              Minha Conta
+            </Link>
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="sm"

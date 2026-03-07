@@ -76,4 +76,13 @@ public interface LocacaoRepositoryJpa extends JpaRepository<LocacaoEntity, Long>
      */
     @Query("SELECT l FROM LocacaoEntity l WHERE l.status = 'RETIRADO' AND l.dataFim < :hoje")
     java.util.List<LocacaoEntity> buscarRetiradosEmAtraso(@Param("hoje") LocalDate hoje);
+
+    /**
+     * Retorna apenas os IDs das locações do cliente — O(log n) via índice composto.
+     * Usado para buscar pagamentos associados sem carregar entidades completas.
+     */
+    @Query("SELECT l.id FROM LocacaoEntity l WHERE l.tenantId = :tenantId AND l.clienteId = :clienteId")
+    java.util.List<Long> findIdsByTenantIdAndClienteId(
+            @Param("tenantId") UUID tenantId,
+            @Param("clienteId") Long clienteId);
 }

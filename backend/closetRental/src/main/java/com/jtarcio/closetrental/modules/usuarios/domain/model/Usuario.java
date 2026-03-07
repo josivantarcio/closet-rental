@@ -13,6 +13,7 @@ public class Usuario {
     private String role;
     private boolean ativo;
     private UUID tenantId;
+    private Long clienteId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -20,7 +21,7 @@ public class Usuario {
 
     public Usuario(Long id, String nome, String username, String email,
                    String senhaHash, String role, boolean ativo,
-                   UUID tenantId, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                   UUID tenantId, Long clienteId, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.nome = nome;
         this.username = username;
@@ -29,6 +30,7 @@ public class Usuario {
         this.role = role;
         this.ativo = ativo;
         this.tenantId = tenantId;
+        this.clienteId = clienteId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -59,6 +61,9 @@ public class Usuario {
 
     public UUID getTenantId() { return tenantId; }
     public void setTenantId(UUID tenantId) { this.tenantId = tenantId; }
+
+    public Long getClienteId() { return clienteId; }
+    public void setClienteId(Long clienteId) { this.clienteId = clienteId; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

@@ -171,14 +171,19 @@ export default function LocacoesPage() {
   };
 
   const nomeCliente = (id: number) => clienteMap.get(id)?.nome ?? `Cliente #${id}`;
-  const nomeProduto = (id: number) => produtoMap.get(id)?.nome ?? `Produto #${id}`;
+  const nomeProdutosLocacao = (loc: { itens?: { produtoId: number; nomeProduto: string }[] }) => {
+    if (loc.itens && loc.itens.length > 0) {
+      return loc.itens.map((i) => i.nomeProduto || produtoMap.get(i.produtoId)?.nome || `#${i.produtoId}`).join(", ");
+    }
+    return "—";
+  };
 
   const filtered = data?.content.filter((l) => {
     const s = search.toLowerCase();
     return (
       String(l.id).includes(s) ||
       nomeCliente(l.clienteId).toLowerCase().includes(s) ||
-      nomeProduto(l.produtoId).toLowerCase().includes(s)
+      nomeProdutosLocacao(l).toLowerCase().includes(s)
     );
   });
 
@@ -251,7 +256,7 @@ export default function LocacoesPage() {
                       {nomeCliente(loc.clienteId)}
                     </TableCell>
                     <TableCell className="text-sm">
-                      {nomeProduto(loc.produtoId)}
+                      {nomeProdutosLocacao(loc)}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {formatDate(loc.dataInicio)} → {formatDate(loc.dataFim)}

@@ -75,22 +75,36 @@ export interface ClienteRequest {
 
 // --- Locações ---
 export type StatusLocacao = "RESERVADO" | "RETIRADO" | "DEVOLVIDO" | "CANCELADO";
+export type StatusCaucao = "RETIDA" | "DEVOLVIDA" | "DEVOLVIDA_PARCIAL" | "RETIDA_POR_DANO";
+
+export interface ItemLocacaoResponse {
+  id: number;
+  produtoId: number;
+  nomeProduto: string;
+  valorDiaria: number;
+  subtotal: number;
+}
 
 export interface LocacaoResponse {
   id: number;
   clienteId: number;
   clienteNome?: string;
-  produtoId: number;
-  produtoNome?: string;
+  itens: ItemLocacaoResponse[];
   dataInicio: string;
   dataFim: string;
-  valorDiaria: number;
-  caucao: number;
-  valorTotal: number;
-  multaAtraso: number | null;
-  multa?: number | null;
+  diasLocacao: number;
   status: StatusLocacao;
-  operador?: string;
+  caucao: number | null;
+  statusCaucao: StatusCaucao;
+  caucaoRetida: number | null;
+  multa: number | null;
+  multaCancelamento: number | null;
+  valorTotal: number;
+  retiradaAt: string | null;
+  devolucaoAt: string | null;
+  atrasada: boolean;
+  observacoes: string | null;
+  createdAt: string;
 }
 
 export interface CriarReservaRequest {
@@ -187,6 +201,22 @@ export interface ReceitaCategoriaResponse {
   categoria: string;
   totalLocacoes: number;
   receitaTotal: number;
+}
+
+// --- Minha Conta ---
+export interface PerfilResponse {
+  id: number;
+  nome: string;
+  username: string;
+  email: string;
+  role: string;
+  clienteId: number | null;
+  createdAt: string;
+}
+
+export interface AlterarMinhaSenhaRequest {
+  senhaAtual: string;
+  novaSenha: string;
 }
 
 // --- Erros da API ---

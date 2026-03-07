@@ -98,4 +98,9 @@ public class LocacaoRepositoryAdapter implements LocacaoRepositoryPort {
     public List<Locacao> buscarRetiradosEmAtraso(LocalDate hoje) {
         return jpa.buscarRetiradosEmAtraso(hoje).stream().map(mapper::toDomain).toList();
     }
+
+    @Override
+    public List<Long> listarIdsPorCliente(UUID tenantId, Long clienteId) {
+        return jpa.findIdsByTenantIdAndClienteId(tenantId, clienteId);
+    }
 }

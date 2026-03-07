@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -52,5 +53,13 @@ public class PagamentoRepositoryAdapter implements PagamentoRepositoryPort {
             return jpa.findAll(pageable).map(mapper::toDomain);
         }
         return jpa.findByTenantIdOrderByCriadoEmDesc(tenantId, pageable).map(mapper::toDomain);
+    }
+
+    @Override
+    public Page<Pagamento> listarPorLocacoes(Collection<Long> locacaoIds, Pageable pageable) {
+        if (locacaoIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        return jpa.findByLocacaoIdInOrderByCriadoEmDesc(locacaoIds, pageable).map(mapper::toDomain);
     }
 }

@@ -30,6 +30,12 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "caaf2d00-fd79-4117-8598-b0c7849f26a8"
+      }
+    },
+    "owner": "josivantarcio"
   }
 }

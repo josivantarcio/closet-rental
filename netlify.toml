@@ -1,3 +1,12 @@
+# =============================================================================
+# netlify.toml — Deploy do frontend Next.js no Netlify
+#
+# Variáveis de ambiente (definir em Netlify → Site → Environment variables):
+#   NEXT_PUBLIC_API_URL  → URL pública do ALB (ex: https://api.seudominio.com.br)
+#
+# O plugin @netlify/plugin-nextjs é obrigatório para App Router + SSR.
+# =============================================================================
+
 [build]
   base    = "frontend"
   command = "npm run build"
@@ -5,6 +14,23 @@
 
 [build.environment]
   NODE_VERSION = "20"
+
+# Cabeçalhos de segurança
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options          = "DENY"
+    X-Content-Type-Options   = "nosniff"
+    Referrer-Policy          = "strict-origin-when-cross-origin"
+    Permissions-Policy       = "camera=(), microphone=(), geolocation=()"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+
+# Redireciona HTTP → HTTPS (Netlify já faz por padrão, mas explicita)
+[[redirects]]
+  from   = "http://seu-atelier.netlify.app/*"
+  to     = "https://seu-atelier.netlify.app/:splat"
+  status = 301
+  force  = true
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

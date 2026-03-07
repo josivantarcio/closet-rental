@@ -1,12 +1,65 @@
+# =============================================================================
+# application-prod.yml — Configurações de produção (AWS ECS Fargate)
+#
+# Valores sensíveis NÃO ficam aqui — são injetados pelo ECS via Secrets Manager.
+# Variáveis injetadas: SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME,
+#   SPRING_DATASOURCE_PASSWORD, APP_JWT_SECRET, MAIL_HOST, MAIL_USERNAME,
+#   MAIL_PASSWORD, CORS_ALLOWED_ORIGINS
+# =============================================================================
+
 spring:
   jpa:
     show-sql: false
     properties:
       hibernate:
         format_sql: false
+    hibernate:
+      # validate garante que o schema está compatível com as entities (Flyway cuida das migrations)
+      ddl-auto: validate
+
+  # Connection pool otimizado para Fargate (512 CPU / 1GB RAM)
+  datasource:
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # Desabilita DevTools em produção
+  devtools:
+    restart:
+      enabled: false
+
+  # Flyway — sempre roda migrations na inicialização
+  flyway:
+    enabled: true
+    validate-on-migrate: true
+    out-of-order: false
 
 springdoc:
   swagger-ui:
     enabled: false
   api-docs:
     enabled: false
+
+# Spring Actuator — health check para o ALB target group
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: never
+
+# Storage — S3 em produção (AWS_REGION e S3_BUCKET injetados pelo ECS)
+app:
+  storage:
+    provider: s3
+
+  # Notificações por e-mail habilitadas em produção
+  notificacao:
+    email:
+      enabled: true

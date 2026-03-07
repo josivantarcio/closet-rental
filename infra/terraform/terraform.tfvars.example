@@ -1,0 +1,32 @@
+# Copie para terraform.tfvars e preencha os valores reais.
+# NUNCA commite terraform.tfvars (está no .gitignore).
+
+aws_region  = "us-east-1"
+project     = "closet-rental"
+environment = "prod"
+
+# RDS
+db_name            = "aluguel"
+db_username        = "postgres"
+db_password        = "TROQUE_POR_SENHA_FORTE"
+rds_instance_class = "db.t3.micro"
+
+# ECS
+ecs_task_cpu      = 512
+ecs_task_memory   = 1024
+ecs_desired_count = 1
+image_tag         = "latest"
+
+# ALB — ARN do certificado criado no AWS Certificate Manager (us-east-1)
+acm_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/XXXXXXXX"
+
+# JWT
+jwt_secret = "GERE_COM: openssl rand -hex 32"
+
+# SES SMTP (gerar em: IAM → Credenciais SMTP do SES)
+mail_host     = "email-smtp.us-east-1.amazonaws.com"
+mail_username = "AKIAIOSFODNN7EXAMPLE"
+mail_password = "SMTP_PASSWORD_DO_SES"
+
+# CORS — URL do site no Netlify
+cors_origins = "https://seu-atelier.netlify.app"

@@ -21,3 +21,10 @@ Thumbs.db
 frontend/playwright-report/
 frontend/test-results/
 frontend/.playwright/
+
+# Terraform
+infra/terraform/terraform.tfvars
+infra/terraform/.terraform/
+infra/terraform/.terraform.lock.hcl
+infra/terraform/*.tfplan
+infra/terraform/tfplan.json

@@ -2,9 +2,13 @@ package com.jtarcio.closetrental.modules.relatorios.application;
 
 import com.jtarcio.closetrental.modules.relatorios.api.dto.AtrasosPendentesResponse;
 import com.jtarcio.closetrental.modules.relatorios.api.dto.DisponibilidadeDataResponse;
+import com.jtarcio.closetrental.modules.relatorios.api.dto.FaturamentoPeriodoResponse;
 import com.jtarcio.closetrental.modules.relatorios.api.dto.FaturamentoResponse;
 import com.jtarcio.closetrental.modules.relatorios.api.dto.HistoricoClienteResponse;
 import com.jtarcio.closetrental.modules.relatorios.api.dto.PecaMaisAlugadaResponse;
+import com.jtarcio.closetrental.modules.relatorios.api.dto.ReceitaCategoriaResponse;
+import com.jtarcio.closetrental.modules.relatorios.api.dto.TicketMedioResponse;
+import com.jtarcio.closetrental.modules.relatorios.api.dto.TopClienteResponse;
 import com.jtarcio.closetrental.modules.relatorios.domain.ports.RelatorioRepositoryPort;
 import com.jtarcio.closetrental.shared.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -63,9 +67,36 @@ public class RelatorioService {
         LocalDate hoje = LocalDate.now();
         log.info("Relatório: atrasos pendentes em {}", hoje);
         Page<AtrasosPendentesResponse> page = relatorioPort.atrasosPendentes(hoje, pageable);
-        // Recalcular diasAtraso e multaEstimada com o percentual configurado
         return page.map(r -> AtrasosPendentesResponse.of(
                 r.locacaoId(), r.clienteId(), r.produtoId(),
                 r.dataFim(), hoje, r.valorDiaria(), percentualMultaDiaria));
+    }
+
+    public List<TopClienteResponse> topClientes(int limite) {
+        if (limite < 1 || limite > 100) throw new BusinessException("Limite inválido: 1–100");
+        log.info("Relatório: top {} clientes", limite);
+        return relatorioPort.topClientes(limite);
+    }
+
+    public List<TicketMedioResponse> ticketMedio(LocalDate de, LocalDate ate) {
+        validarPeriodo(de, ate);
+        log.info("Relatório: ticket médio {} a {}", de, ate);
+        return relatorioPort.ticketMedioPorPeriodo(de, ate);
+    }
+
+    public List<ReceitaCategoriaResponse> receitaPorCategoria() {
+        log.info("Relatório: receita por categoria");
+        return relatorioPort.receitaPorCategoria();
+    }
+
+    public FaturamentoPeriodoResponse faturamentoPorPeriodo(LocalDate de, LocalDate ate) {
+        validarPeriodo(de, ate);
+        log.info("Relatório: faturamento por período {} a {}", de, ate);
+        return relatorioPort.faturamentoPorPeriodo(de, ate);
+    }
+
+    private void validarPeriodo(LocalDate de, LocalDate ate) {
+        if (de == null || ate == null) throw new BusinessException("Datas de início e fim são obrigatórias");
+        if (de.isAfter(ate)) throw new BusinessException("Data de início deve ser anterior à data de fim");
     }
 }

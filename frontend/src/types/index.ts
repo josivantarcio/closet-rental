@@ -144,9 +144,17 @@ export interface FaturamentoResponse {
   totalPagamentos: number;
 }
 
+export interface FaturamentoPeriodoResponse {
+  meses: FaturamentoResponse[];
+  totalPeriodo: number;
+  totalPagamentosPeriodo: number;
+}
+
 export interface PecaMaisAlugadaResponse {
   produtoId: number;
   nomeProduto: string;
+  nome: string;
+  categoria: string;
   totalLocacoes: number;
 }
 
@@ -158,6 +166,27 @@ export interface AtrasosPendentesResponse {
   diasAtraso: number;
   valorDiaria: number;
   multaEstimada: number;
+}
+
+export interface TopClienteResponse {
+  clienteId: number;
+  nomeCliente: string;
+  totalLocacoes: number;
+  receitaTotal: number;
+}
+
+export interface TicketMedioResponse {
+  mes: number;
+  ano: number;
+  totalLocacoes: number;
+  receitaTotal: number;
+  ticketMedio: number;
+}
+
+export interface ReceitaCategoriaResponse {
+  categoria: string;
+  totalLocacoes: number;
+  receitaTotal: number;
 }
 
 // --- Erros da API ---

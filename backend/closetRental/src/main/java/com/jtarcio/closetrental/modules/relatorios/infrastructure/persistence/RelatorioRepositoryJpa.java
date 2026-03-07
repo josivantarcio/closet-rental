@@ -4,6 +4,9 @@ import com.jtarcio.closetrental.modules.relatorios.api.dto.AtrasosPendentesRespo
 import com.jtarcio.closetrental.modules.relatorios.api.dto.DisponibilidadeDataResponse;
 import com.jtarcio.closetrental.modules.relatorios.api.dto.HistoricoClienteResponse;
 import com.jtarcio.closetrental.modules.relatorios.api.dto.PecaMaisAlugadaResponse;
+import com.jtarcio.closetrental.modules.relatorios.api.dto.ReceitaCategoriaResponse;
+import com.jtarcio.closetrental.modules.relatorios.api.dto.TicketMedioResponse;
+import com.jtarcio.closetrental.modules.relatorios.api.dto.TopClienteResponse;
 import com.jtarcio.closetrental.modules.relatorios.infrastructure.persistence.projection.FaturamentoProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +15,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 import com.jtarcio.closetrental.modules.locacoes.infrastructure.persistence.LocacaoEntity;
 
@@ -117,4 +122,79 @@ public interface RelatorioRepositoryJpa extends JpaRepository<LocacaoEntity, Lon
         """)
     Page<AtrasosPendentesResponse> findAtrasosPendentes(
             @Param("hoje") LocalDate hoje, Pageable pageable);
+
+    /**
+     * Top clientes por receita: soma dos pagamentos APROVADOS por cliente.
+     * JOIN pagamentos via locacaoId — usa índice composto status+locacao.
+     */
+    @Query(value = """
+        SELECT l.cliente_id  AS clienteId,
+               c.nome        AS nomeCliente,
+               COUNT(DISTINCT l.id) AS totalLocacoes,
+               COALESCE(SUM(p.valor), 0) AS receitaTotal
+        FROM locacoes l
+        JOIN clientes c ON c.id = l.cliente_id
+        LEFT JOIN pagamentos p ON p.locacao_id = l.id AND p.status = 'APROVADO'
+        WHERE l.status <> 'CANCELADO'
+        GROUP BY l.cliente_id, c.nome
+        ORDER BY receitaTotal DESC
+        LIMIT :limite
+        """, nativeQuery = true)
+    List<Object[]> findTopClientes(@Param("limite") int limite);
+
+    /**
+     * Ticket médio mensal: receita total / número de locações não-canceladas no mês.
+     */
+    @Query(value = """
+        SELECT EXTRACT(MONTH FROM p.criado_em) AS mes,
+               EXTRACT(YEAR  FROM p.criado_em) AS ano,
+               COUNT(DISTINCT l.id)            AS totalLocacoes,
+               SUM(p.valor)                    AS receitaTotal
+        FROM pagamentos p
+        JOIN locacoes l ON l.id = p.locacao_id
+        WHERE p.status = 'APROVADO'
+          AND p.criado_em >= :de
+          AND p.criado_em < :ate
+        GROUP BY mes, ano
+        ORDER BY ano, mes
+        """, nativeQuery = true)
+    List<Object[]> findTicketMedioPorPeriodo(
+            @Param("de")  java.time.LocalDateTime de,
+            @Param("ate") java.time.LocalDateTime ate);
+
+    /**
+     * Receita por categoria de produto.
+     */
+    @Query(value = """
+        SELECT p.categoria   AS categoria,
+               COUNT(DISTINCT l.id) AS totalLocacoes,
+               COALESCE(SUM(pg.valor), 0) AS receitaTotal
+        FROM itens_locacao il
+        JOIN locacoes l ON l.id = il.locacao_id
+        JOIN produtos p ON p.id = il.produto_id
+        LEFT JOIN pagamentos pg ON pg.locacao_id = l.id AND pg.status = 'APROVADO'
+        WHERE l.status <> 'CANCELADO'
+        GROUP BY p.categoria
+        ORDER BY receitaTotal DESC
+        """, nativeQuery = true)
+    List<Object[]> findReceitaPorCategoria();
+
+    /**
+     * Faturamento mensal num intervalo: usado para gráfico de linha multi-mês.
+     */
+    @Query(value = """
+        SELECT EXTRACT(MONTH FROM p.criado_em) AS mes,
+               EXTRACT(YEAR  FROM p.criado_em) AS ano,
+               SUM(p.valor)   AS totalReceita,
+               COUNT(p.id)    AS totalPagamentos
+        FROM pagamentos p
+        WHERE p.status = 'APROVADO'
+          AND p.criado_em >= :de
+          AND p.criado_em < :ate
+        GROUP BY mes, ano
+        ORDER BY ano, mes
+        """, nativeQuery = true)
+    List<Object[]> findFaturamentoPorPeriodo(
+            @Param("de")  java.time.LocalDateTime de,
+            @Param("ate") java.time.LocalDateTime ate);
 }

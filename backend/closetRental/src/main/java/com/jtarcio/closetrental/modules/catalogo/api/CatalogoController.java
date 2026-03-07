@@ -4,6 +4,7 @@ import com.jtarcio.closetrental.modules.catalogo.api.dto.PeriodoOcupadoResponse;
 import com.jtarcio.closetrental.modules.catalogo.api.dto.ProdutoRequest;
 import com.jtarcio.closetrental.modules.catalogo.api.dto.ProdutoResponse;
 import com.jtarcio.closetrental.modules.catalogo.application.AgendaProdutoService;
+import com.jtarcio.closetrental.modules.catalogo.application.ImagemService;
 import com.jtarcio.closetrental.modules.catalogo.application.ProdutoService;
 import com.jtarcio.closetrental.modules.catalogo.domain.model.Produto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,15 +17,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.YearMonth;
 import java.util.List;
 
-/**
- * Controller REST do módulo de Catálogo.
- * Endpoint base: /v1/catalogo
- * GET é público; POST/PUT exigem ADMIN ou ATENDENTE; DELETE exige ADMIN.
- */
 @RestController
 @RequestMapping("/v1/catalogo")
 @RequiredArgsConstructor
@@ -33,26 +30,22 @@ public class CatalogoController {
 
     private final ProdutoService produtoService;
     private final AgendaProdutoService agendaProdutoService;
+    private final ImagemService imagemService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Cadastrar produto",
-               description = "Cadastra um novo produto no catálogo. Requer ADMIN ou ATENDENTE.")
+    @Operation(summary = "Cadastrar produto", description = "Cadastra um novo produto no catálogo. Requer ADMIN ou ATENDENTE.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Produto cadastrado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos (ex: valor diária negativo)"),
-        @ApiResponse(responseCode = "401", description = "Não autenticado"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
         @ApiResponse(responseCode = "403", description = "Sem permissão — exige ADMIN ou ATENDENTE")
     })
     public ProdutoResponse criar(@Valid @RequestBody ProdutoRequest request) {
-        Produto produto = toDomain(request);
-        return toResponse(produtoService.criar(produto));
+        return toResponse(produtoService.criar(toDomain(request)));
     }
 
     @GetMapping
-    @Operation(summary = "Listar produtos",
-               description = "Lista produtos do catálogo com paginação. Endpoint público.")
-    @ApiResponse(responseCode = "200", description = "Lista paginada de produtos")
+    @Operation(summary = "Listar produtos", description = "Lista produtos com paginação. Endpoint público.")
     public Page<ProdutoResponse> listar(Pageable pageable) {
         return produtoService.listar(pageable).map(this::toResponse);
     }
@@ -68,33 +61,42 @@ public class CatalogoController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Atualizar produto",
-               description = "Atualiza dados de um produto existente. Requer ADMIN ou ATENDENTE.")
+    @Operation(summary = "Atualizar produto", description = "Atualiza dados de um produto existente. Requer ADMIN ou ATENDENTE.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Produto atualizado"),
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "401", description = "Não autenticado"),
-        @ApiResponse(responseCode = "403", description = "Sem permissão — exige ADMIN ou ATENDENTE"),
         @ApiResponse(responseCode = "404", description = "Produto não encontrado")
     })
     public ProdutoResponse atualizar(@PathVariable Long id, @Valid @RequestBody ProdutoRequest request) {
-        Produto produto = toDomain(request);
-        return toResponse(produtoService.atualizar(id, produto));
+        return toResponse(produtoService.atualizar(id, toDomain(request)));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Excluir produto",
-               description = "Exclui um produto sem locações ativas. Requer ADMIN.")
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Produto excluído"),
-        @ApiResponse(responseCode = "400", description = "Produto possui locações ativas"),
-        @ApiResponse(responseCode = "401", description = "Não autenticado"),
-        @ApiResponse(responseCode = "403", description = "Sem permissão — exige ADMIN"),
-        @ApiResponse(responseCode = "404", description = "Produto não encontrado")
-    })
+    @Operation(summary = "Excluir produto", description = "Exclui um produto sem locações ativas. Requer ADMIN.")
     public void deletar(@PathVariable Long id) {
         produtoService.deletar(id);
+    }
+
+    @PostMapping(value = "/{id}/imagem", consumes = "multipart/form-data")
+    @Operation(summary = "Upload de imagem do produto",
+               description = "Faz upload da imagem (JPEG, PNG ou WebP, máx. 5MB). Gera thumbnail 400×600px. Requer ADMIN ou ATENDENTE.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Imagem enviada com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Arquivo inválido (tipo ou tamanho)"),
+        @ApiResponse(responseCode = "404", description = "Produto não encontrado")
+    })
+    public ProdutoResponse uploadImagem(
+            @PathVariable Long id,
+            @RequestParam("arquivo") MultipartFile arquivo) {
+        return toResponse(imagemService.uploadImagem(id, arquivo));
+    }
+
+    @DeleteMapping("/{id}/imagem")
+    @Operation(summary = "Remover imagem do produto", description = "Remove a imagem do produto. Requer ADMIN.")
+    @ApiResponse(responseCode = "200", description = "Imagem removida")
+    public ProdutoResponse removerImagem(@PathVariable Long id) {
+        return toResponse(imagemService.removerImagem(id));
     }
 
     @GetMapping("/{id}/agenda")
@@ -109,9 +111,7 @@ public class CatalogoController {
     public List<PeriodoOcupadoResponse> agenda(
             @PathVariable Long id,
             @RequestParam(defaultValue = "") String mes) {
-        YearMonth yearMonth = mes.isBlank()
-                ? YearMonth.now()
-                : YearMonth.parse(mes);
+        YearMonth yearMonth = mes.isBlank() ? YearMonth.now() : YearMonth.parse(mes);
         return agendaProdutoService.buscarAgenda(id, yearMonth);
     }
 

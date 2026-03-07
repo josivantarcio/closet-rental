@@ -310,7 +310,7 @@ export default function RelatoriosPage() {
                     <PieChart>
                       <Pie data={catData} cx="50%" cy="50%" outerRadius={80}
                         dataKey="value" nameKey="name" label={({ name, percent }) =>
-                          `${name} ${(percent * 100).toFixed(0)}%`}
+                          `${name ?? ""} ${(((percent as number) ?? 0) * 100).toFixed(0)}%`}
                         labelLine={false}
                       >
                         {catData.map((_, i) => (

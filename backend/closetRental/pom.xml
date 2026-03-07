@@ -118,6 +118,20 @@
             <version>2.0.3</version>
         </dependency>
 
+        <!-- AWS SDK v2 — S3 upload de imagens -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>2.25.60</version>
+        </dependency>
+
+        <!-- imgscalr — redimensionamento de imagens (thumbnail) -->
+        <dependency>
+            <groupId>org.imgscalr</groupId>
+            <artifactId>imgscalr-lib</artifactId>
+            <version>4.2</version>
+        </dependency>
+
         <!-- JWT (jjwt 0.12.x) -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

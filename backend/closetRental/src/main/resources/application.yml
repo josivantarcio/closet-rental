@@ -62,3 +62,14 @@ app:
       nome-remetente: ${MAIL_FROM_NAME:Closet Rental}
     lembrete:
       cron: ${LEMBRETE_CRON:0 0 9 * * *}
+  storage:
+    provider: ${STORAGE_PROVIDER:local}
+    local:
+      path: ${STORAGE_LOCAL_PATH:uploads}
+      base-url: ${STORAGE_LOCAL_BASE_URL:http://localhost:8080/uploads}
+    s3:
+      region: ${AWS_REGION:us-east-1}
+      bucket: ${S3_BUCKET:}
+      access-key: ${AWS_ACCESS_KEY_ID:}
+      secret-key: ${AWS_SECRET_ACCESS_KEY:}
+      base-url: ${CLOUDFRONT_URL:}

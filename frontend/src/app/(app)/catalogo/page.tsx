@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Plus, Search, Pencil, Trash2, Loader2, LayoutGrid, List, Tag, Palette, Ruler, FileText, Link2 } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Loader2, LayoutGrid, List, Tag, Palette, Ruler, FileText } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -40,6 +40,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { catalogoService } from "@/lib/services/catalogo.service";
+import { ImagemUpload } from "@/components/shared/imagem-upload";
 import { formatCurrency, categoriaLabel } from "@/lib/format";
 import type { ProdutoResponse, ProdutoRequest, CategoriaProduto } from "@/types";
 
@@ -340,11 +341,22 @@ export default function CatalogoPage() {
                       #{produto.id}
                     </TableCell>
                     <TableCell>
-                      <div>
-                        <p className="font-medium">{produto.nome}</p>
-                        {produto.descricao && (
-                          <p className="text-xs text-muted-foreground truncate max-w-xs">{produto.descricao}</p>
+                      <div className="flex items-center gap-2">
+                        {produto.imagemUrl ? (
+                          <img
+                            src={produto.imagemUrl}
+                            alt={produto.nome}
+                            className="h-8 w-8 rounded object-cover flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="h-8 w-8 rounded bg-muted flex-shrink-0" />
                         )}
+                        <div>
+                          <p className="font-medium">{produto.nome}</p>
+                          {produto.descricao && (
+                            <p className="text-xs text-muted-foreground truncate max-w-xs">{produto.descricao}</p>
+                          )}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -519,15 +531,25 @@ export default function CatalogoPage() {
               />
             </div>
 
-            {/* URL da imagem */}
+            {/* Imagem do produto */}
             <div className="space-y-1.5">
-              <Label htmlFor="imagemUrl" className="flex items-center gap-1">
-                <Link2 className="h-3 w-3" /> URL da Imagem
+              <Label className="flex items-center gap-1">
+                Imagem
                 <span className="text-muted-foreground text-xs">(opc.)</span>
               </Label>
-              <Input id="imagemUrl" placeholder="https://..." {...register("imagemUrl")} />
-              {errors.imagemUrl && (
-                <p className="text-xs text-destructive">{errors.imagemUrl.message}</p>
+              {editingProduto ? (
+                <ImagemUpload
+                  produtoId={editingProduto.id}
+                  imagemAtual={editingProduto.imagemUrl}
+                  onSuccess={(url) => {
+                    setEditingProduto((prev) => prev ? { ...prev, imagemUrl: url ?? undefined } : prev);
+                    queryClient.invalidateQueries({ queryKey: ["catalogo"] });
+                  }}
+                />
+              ) : (
+                <p className="text-xs text-muted-foreground py-2 px-3 rounded-md border border-dashed border-border text-center">
+                  Salve o produto primeiro para adicionar uma imagem.
+                </p>
               )}
             </div>
 

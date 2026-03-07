@@ -71,6 +71,9 @@ public class SecurityConfig {
                         // Swagger e docs públicos
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 
+                        // Uploads locais (dev) — imagens públicas
+                        .requestMatchers("/uploads/**").permitAll()
+
                         // Catálogo — leitura pública, escrita restrita
                         .requestMatchers(HttpMethod.GET, "/v1/catalogo/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/catalogo/**").hasAnyRole("ADMIN", "ATENDENTE")

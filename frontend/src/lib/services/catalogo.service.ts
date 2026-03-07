@@ -24,4 +24,17 @@ export const catalogoService = {
     api.put<ProdutoResponse>(`/v1/catalogo/${id}`, data).then((r) => r.data),
 
   deletar: (id: number) => api.delete(`/v1/catalogo/${id}`),
+
+  uploadImagem: (id: number, arquivo: File) => {
+    const form = new FormData();
+    form.append("arquivo", arquivo);
+    return api
+      .post<ProdutoResponse>(`/v1/catalogo/${id}/imagem`, form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((r) => r.data);
+  },
+
+  removerImagem: (id: number) =>
+    api.delete<ProdutoResponse>(`/v1/catalogo/${id}/imagem`).then((r) => r.data),
 };

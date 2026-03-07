@@ -30,4 +30,16 @@ export const locacoesService = {
 
   cancelar: (id: number) =>
     api.post<LocacaoResponse>(`/v1/locacoes/${id}/cancelar`).then((r) => r.data),
+
+  baixarContrato: async (id: number): Promise<void> => {
+    const response = await api.get(`/v1/locacoes/${id}/contrato`, {
+      responseType: "blob",
+    });
+    const url = URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `contrato-locacao-${id}.pdf`;
+    link.click();
+    URL.revokeObjectURL(url);
+  },
 };

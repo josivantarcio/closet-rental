@@ -52,4 +52,13 @@ public interface LocacaoRepositoryPort {
      * Usado para montar o calendário de ocupação.
      */
     List<Locacao> buscarPeriodosOcupadosNoMes(Long produtoId, LocalDate inicioMes, LocalDate fimMes);
+
+    /** Locações RESERVADAS com retirada na data informada. */
+    List<Locacao> buscarReservadosComRetiradaEm(LocalDate data);
+
+    /** Locações RETIRADAS com devolução na data informada. */
+    List<Locacao> buscarRetiradosComDevolucaoEm(LocalDate data);
+
+    /** Locações RETIRADAS com dataFim anterior a hoje (em atraso). */
+    List<Locacao> buscarRetiradosEmAtraso(LocalDate hoje);
 }

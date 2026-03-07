@@ -83,4 +83,19 @@ public class LocacaoRepositoryAdapter implements LocacaoRepositoryPort {
                 .map(mapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public List<Locacao> buscarReservadosComRetiradaEm(LocalDate data) {
+        return jpa.buscarReservadosComRetiradaEm(data).stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public List<Locacao> buscarRetiradosComDevolucaoEm(LocalDate data) {
+        return jpa.buscarRetiradosComDevolucaoEm(data).stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public List<Locacao> buscarRetiradosEmAtraso(LocalDate hoje) {
+        return jpa.buscarRetiradosEmAtraso(hoje).stream().map(mapper::toDomain).toList();
+    }
 }

@@ -60,3 +60,5 @@ app:
       enabled: ${MAIL_ENABLED:false}
       remetente: ${MAIL_FROM:noreply@closetrental.com.br}
       nome-remetente: ${MAIL_FROM_NAME:Closet Rental}
+    lembrete:
+      cron: ${LEMBRETE_CRON:0 0 9 * * *}

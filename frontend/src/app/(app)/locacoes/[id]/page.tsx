@@ -2,7 +2,7 @@
 
 import { use, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CreditCard, Loader2 } from "lucide-react";
+import { ArrowLeft, CreditCard, Download, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -165,9 +165,18 @@ export default function LocacaoDetailPage({
                   <dd>{locacao.operador}</dd>
                 </dl>
 
-                {/* Compartilhar */}
+                {/* Ações secundárias */}
                 <div className="flex flex-wrap gap-2 pt-2">
                   <WhatsAppShareButton locacao={locacao} />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => locacoesService.baixarContrato(locacaoId)}
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    Contrato PDF
+                  </Button>
                 </div>
 
                 {/* Ações de status */}

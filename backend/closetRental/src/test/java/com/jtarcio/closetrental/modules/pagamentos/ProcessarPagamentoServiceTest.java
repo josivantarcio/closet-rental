@@ -3,6 +3,8 @@ package com.jtarcio.closetrental.modules.pagamentos;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.Locacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.ports.LocacaoRepositoryPort;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoContextBuilder;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoService;
 import com.jtarcio.closetrental.modules.pagamentos.application.ProcessarPagamentoService;
 import com.jtarcio.closetrental.modules.pagamentos.domain.model.MetodoPagamento;
 import com.jtarcio.closetrental.modules.pagamentos.domain.model.Pagamento;
@@ -36,6 +38,8 @@ class ProcessarPagamentoServiceTest {
     @Mock private LocacaoRepositoryPort locacaoPort;
     @Mock private PagamentoRepositoryPort pagamentoPort;
     @Mock private GatewayPagamentoPort gatewayPort;
+    @Mock private NotificacaoService notificacaoService;
+    @Mock private NotificacaoContextBuilder contextBuilder;
 
     @InjectMocks
     private ProcessarPagamentoService service;
@@ -61,6 +65,8 @@ class ProcessarPagamentoServiceTest {
         locacaoDevolvida = new Locacao();
         locacaoDevolvida.setId(2L);
         locacaoDevolvida.setStatus(StatusLocacao.DEVOLVIDO);
+
+        lenient().when(contextBuilder.construir(any())).thenReturn(java.util.Optional.empty());
     }
 
     // ─────────────────────────── Aprovação / Falha ───────────────────────────

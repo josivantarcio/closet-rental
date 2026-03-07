@@ -82,10 +82,14 @@ public class EmailNotificacaoAdapter implements NotificacaoService {
 
     private String resolverAssunto(TipoNotificacao tipo, Map<String, Object> ctx) {
         return switch (tipo) {
-            case RESERVA_CRIADA        -> "Reserva confirmada — " + ctx.getOrDefault("tenantNome", "Atelier");
-            case RETIRADA_REGISTRADA   -> "Retirada registrada — devolução em " + ctx.getOrDefault("dataFim", "");
-            case DEVOLUCAO_REGISTRADA  -> "Devolução confirmada — obrigado!";
-            case CANCELAMENTO_RESERVA  -> "Reserva cancelada — " + ctx.getOrDefault("tenantNome", "Atelier");
+            case RESERVA_CRIADA       -> "Reserva confirmada — " + ctx.getOrDefault("tenantNome", "Atelier");
+            case RETIRADA_REGISTRADA  -> "Retirada registrada — devolução em " + ctx.getOrDefault("dataFim", "");
+            case DEVOLUCAO_REGISTRADA -> "Devolução confirmada — obrigado!";
+            case CANCELAMENTO_RESERVA -> "Reserva cancelada — " + ctx.getOrDefault("tenantNome", "Atelier");
+            case LEMBRETE_RETIRADA    -> "Lembrete: sua retirada é amanhã — " + ctx.getOrDefault("tenantNome", "Atelier");
+            case LEMBRETE_DEVOLUCAO   -> "Lembrete: devolução hoje — " + ctx.getOrDefault("tenantNome", "Atelier");
+            case AVISO_ATRASO         -> "Aviso de atraso — contrato nº " + ctx.getOrDefault("locacaoId", "");
+            case RECIBO_PAGAMENTO     -> "Recibo de pagamento — contrato nº " + ctx.getOrDefault("locacaoId", "");
         };
     }
 
@@ -156,6 +160,53 @@ public class EmailNotificacaoAdapter implements NotificacaoService {
                             : "Multa de cancelamento aplicada: R$ " + multaCancelamento + "\n\n",
                         tenantNome
                     );
+            }
+
+            case LEMBRETE_RETIRADA -> """
+                    Olá, %s!
+
+                    Este é um lembrete de que a retirada das peças do contrato nº %s
+                    está agendada para AMANHÃ (%s).
+
+                    Qualquer dúvida, fale com %s.
+                    """.formatted(clienteNome, locacaoId, dataInicio, tenantNome);
+
+            case LEMBRETE_DEVOLUCAO -> """
+                    Olá, %s!
+
+                    Lembramos que as peças do contrato nº %s devem ser devolvidas HOJE (%s).
+
+                    Evite multas por atraso. Em caso de dúvidas, fale com %s.
+                    """.formatted(clienteNome, locacaoId, dataFim, tenantNome);
+
+            case AVISO_ATRASO -> {
+                String diasAtraso = str(ctx, "diasAtraso");
+                String multaAtraso = str(ctx, "multaAtraso");
+                yield """
+                    Olá, %s!
+
+                    Identificamos que as peças do contrato nº %s estão em atraso há %s dia(s).
+
+                    Data de devolução prevista: %s
+                    Multa acumulada estimada: R$ %s
+
+                    Por favor, entre em contato com %s o quanto antes para regularizar.
+                    """.formatted(clienteNome, locacaoId, diasAtraso, dataFim, multaAtraso, tenantNome);
+            }
+
+            case RECIBO_PAGAMENTO -> {
+                String valorPago = str(ctx, "valorPago");
+                String metodo = str(ctx, "metodoPagamento");
+                yield """
+                    Olá, %s!
+
+                    Confirmamos o recebimento do seu pagamento referente ao contrato nº %s.
+
+                    Valor pago: R$ %s
+                    Forma de pagamento: %s
+
+                    Obrigado por usar %s!
+                    """.formatted(clienteNome, locacaoId, valorPago, metodo, tenantNome);
             }
         };
     }

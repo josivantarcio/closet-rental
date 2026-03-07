@@ -3,6 +3,9 @@ package com.jtarcio.closetrental.modules.pagamentos.application;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.Locacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.ports.LocacaoRepositoryPort;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoContextBuilder;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoService;
+import com.jtarcio.closetrental.modules.notificacoes.domain.model.TipoNotificacao;
 import com.jtarcio.closetrental.modules.pagamentos.domain.model.MetodoPagamento;
 import com.jtarcio.closetrental.modules.pagamentos.domain.model.Pagamento;
 import com.jtarcio.closetrental.modules.pagamentos.domain.model.StatusPagamento;
@@ -19,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Use Case: Processar um pagamento para uma locação.
@@ -37,6 +42,8 @@ public class ProcessarPagamentoService {
     private final LocacaoRepositoryPort locacaoPort;
     private final PagamentoRepositoryPort pagamentoPort;
     private final GatewayPagamentoPort gatewayPort;
+    private final NotificacaoService notificacaoService;
+    private final NotificacaoContextBuilder contextBuilder;
 
     @Transactional
     public Pagamento executar(Long locacaoId, BigDecimal valor, MetodoPagamento metodo, String operador) {
@@ -76,6 +83,17 @@ public class ProcessarPagamentoService {
 
         log.info("Pagamento processado: id={}, locacao={}, status={}, metodo={}",
                 pagamento.getId(), locacaoId, pagamento.getStatus(), metodo);
+
+        // Recibo por e-mail somente quando aprovado
+        if (StatusPagamento.APROVADO.equals(pagamento.getStatus())) {
+            final Pagamento pago = pagamento;
+            contextBuilder.construir(locacao).ifPresent(r -> {
+                Map<String, Object> ctx = new HashMap<>(r.contexto());
+                ctx.put("valorPago",        pago.getValor().toPlainString());
+                ctx.put("metodoPagamento",  pago.getMetodo().name());
+                notificacaoService.enviar(TipoNotificacao.RECIBO_PAGAMENTO, r.email(), r.tenantId(), ctx);
+            });
+        }
 
         return pagamento;
     }

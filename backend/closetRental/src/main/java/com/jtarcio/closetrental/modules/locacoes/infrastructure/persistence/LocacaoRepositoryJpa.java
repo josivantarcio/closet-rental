@@ -58,4 +58,22 @@ public interface LocacaoRepositoryJpa extends JpaRepository<LocacaoEntity, Long>
             @Param("produtoId")  Long produtoId,
             @Param("inicioMes") LocalDate inicioMes,
             @Param("fimMes")    LocalDate fimMes);
+
+    /**
+     * Locações RESERVADAS com retirada amanhã — para lembrete de retirada.
+     */
+    @Query("SELECT l FROM LocacaoEntity l WHERE l.status = 'RESERVADO' AND l.dataInicio = :amanha")
+    java.util.List<LocacaoEntity> buscarReservadosComRetiradaEm(@Param("amanha") LocalDate amanha);
+
+    /**
+     * Locações RETIRADAS com devolução hoje — para lembrete de devolução.
+     */
+    @Query("SELECT l FROM LocacaoEntity l WHERE l.status = 'RETIRADO' AND l.dataFim = :hoje")
+    java.util.List<LocacaoEntity> buscarRetiradosComDevolucaoEm(@Param("hoje") LocalDate hoje);
+
+    /**
+     * Locações RETIRADAS com devolução ontem (em atraso) — para aviso de atraso.
+     */
+    @Query("SELECT l FROM LocacaoEntity l WHERE l.status = 'RETIRADO' AND l.dataFim < :hoje")
+    java.util.List<LocacaoEntity> buscarRetiradosEmAtraso(@Param("hoje") LocalDate hoje);
 }

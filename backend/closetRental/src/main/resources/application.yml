@@ -2,6 +2,19 @@ server:
   port: ${APP_PORT:8080}
 
 spring:
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+    test-connection: false
+
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:aluguel}
     username: ${DB_USER:postgres}
@@ -42,3 +55,8 @@ app:
   pagamento:
     gateway:
       taxa-falha: ${TAXA_FALHA_GATEWAY:0.10}
+  notificacao:
+    email:
+      enabled: ${MAIL_ENABLED:false}
+      remetente: ${MAIL_FROM:noreply@closetrental.com.br}
+      nome-remetente: ${MAIL_FROM_NAME:Closet Rental}

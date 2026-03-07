@@ -7,6 +7,9 @@ import com.jtarcio.closetrental.modules.locacoes.domain.model.ItemLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.Locacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.ports.LocacaoRepositoryPort;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoContextBuilder;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoService;
+import com.jtarcio.closetrental.modules.notificacoes.domain.model.TipoNotificacao;
 import com.jtarcio.closetrental.shared.exception.BusinessException;
 import com.jtarcio.closetrental.shared.exception.ConflictException;
 import com.jtarcio.closetrental.shared.exception.EntityNotFoundException;
@@ -43,6 +46,8 @@ public class CriarReservaService {
     private final LocacaoRepositoryPort locacaoPort;
     private final ProdutoRepositoryPort produtoPort;
     private final ClienteRepositoryPort clientePort;
+    private final NotificacaoService notificacaoService;
+    private final NotificacaoContextBuilder contextBuilder;
 
     @Value("${app.locacao.caucao-padrao:100.00}")
     private BigDecimal caucaoPadrao;
@@ -110,6 +115,11 @@ public class CriarReservaService {
         Locacao salva = locacaoPort.salvar(locacao);
         log.info("Reserva criada: id={}, cliente={}, produtos={}, periodo={} a {}, valorTotal={}",
                 salva.getId(), clienteId, produtoIds, dataInicio, dataFim, salva.getValorTotal());
+
+        contextBuilder.construir(salva).ifPresent(r ->
+            notificacaoService.enviar(TipoNotificacao.RESERVA_CRIADA, r.email(), r.tenantId(), r.contexto())
+        );
+
         return salva;
     }
 }

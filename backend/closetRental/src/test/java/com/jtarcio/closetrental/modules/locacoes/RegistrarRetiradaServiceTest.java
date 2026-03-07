@@ -10,6 +10,8 @@ import com.jtarcio.closetrental.modules.locacoes.domain.model.ItemLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.Locacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.ports.LocacaoRepositoryPort;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoContextBuilder;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoService;
 import com.jtarcio.closetrental.shared.exception.BusinessException;
 import com.jtarcio.closetrental.shared.exception.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +38,8 @@ class RegistrarRetiradaServiceTest {
     @Mock private LocacaoRepositoryPort locacaoPort;
     @Mock private ProdutoRepositoryPort produtoPort;
     @Mock private EstoqueService estoqueService;
+    @Mock private NotificacaoService notificacaoService;
+    @Mock private NotificacaoContextBuilder contextBuilder;
 
     @InjectMocks
     private RegistrarRetiradaService service;
@@ -63,6 +67,8 @@ class RegistrarRetiradaServiceTest {
         locacaoReservada.setStatus(StatusLocacao.RESERVADO);
         locacaoReservada.setDataInicio(LocalDate.now());
         locacaoReservada.setDataFim(LocalDate.now().plusDays(3));
+
+        lenient().when(contextBuilder.construir(any())).thenReturn(java.util.Optional.empty());
 
         MovimentacaoEstoque movStub = new MovimentacaoEstoque(10L, 1L, TipoMovimentacao.SAIDA, "stub", "sistema");
         lenient().when(estoqueService.registrarSaida(anyLong(), anyLong(), anyString())).thenReturn(movStub);

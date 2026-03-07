@@ -8,6 +8,8 @@ import com.jtarcio.closetrental.modules.locacoes.application.CriarReservaService
 import com.jtarcio.closetrental.modules.locacoes.domain.model.Locacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.ports.LocacaoRepositoryPort;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoContextBuilder;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoService;
 import com.jtarcio.closetrental.shared.exception.BusinessException;
 import com.jtarcio.closetrental.shared.exception.ConflictException;
 import com.jtarcio.closetrental.shared.exception.EntityNotFoundException;
@@ -37,6 +39,8 @@ class CriarReservaServiceTest {
     @Mock private LocacaoRepositoryPort locacaoPort;
     @Mock private ProdutoRepositoryPort produtoPort;
     @Mock private ClienteRepositoryPort clientePort;
+    @Mock private NotificacaoService notificacaoService;
+    @Mock private NotificacaoContextBuilder contextBuilder;
 
     @InjectMocks
     private CriarReservaService service;
@@ -50,6 +54,7 @@ class CriarReservaServiceTest {
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(service, "caucaoPadrao", new BigDecimal("100.00"));
+        lenient().when(contextBuilder.construir(any())).thenReturn(java.util.Optional.empty());
 
         clienteAtivo = new Cliente();
         clienteAtivo.setId(1L);

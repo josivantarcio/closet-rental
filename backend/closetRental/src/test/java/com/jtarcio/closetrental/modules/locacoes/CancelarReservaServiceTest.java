@@ -5,6 +5,8 @@ import com.jtarcio.closetrental.modules.locacoes.domain.model.ItemLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.Locacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.ports.LocacaoRepositoryPort;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoContextBuilder;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoService;
 import com.jtarcio.closetrental.modules.tenants.domain.model.Tenant;
 import com.jtarcio.closetrental.modules.tenants.domain.ports.TenantRepositoryPort;
 import com.jtarcio.closetrental.shared.exception.BusinessException;
@@ -34,6 +36,8 @@ class CancelarReservaServiceTest {
 
     @Mock private LocacaoRepositoryPort locacaoPort;
     @Mock private TenantRepositoryPort tenantPort;
+    @Mock private NotificacaoService notificacaoService;
+    @Mock private NotificacaoContextBuilder contextBuilder;
 
     @InjectMocks
     private CancelarReservaService service;
@@ -53,6 +57,8 @@ class CancelarReservaServiceTest {
         ItemLocacao item = new ItemLocacao();
         item.setValorDiaria(new BigDecimal("100.00"));
         locacaoReservada.setItens(List.of(item));
+
+        lenient().when(contextBuilder.construir(any())).thenReturn(java.util.Optional.empty());
     }
 
     @Nested

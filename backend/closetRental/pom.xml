@@ -105,6 +105,12 @@
             <version>2.7.0</version>
         </dependency>
 
+        <!-- Spring Mail — envio de emails transacionais -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!-- OpenPDF — geração de contratos em PDF (fork open-source do iText 4) -->
         <dependency>
             <groupId>com.github.librepdf</groupId>

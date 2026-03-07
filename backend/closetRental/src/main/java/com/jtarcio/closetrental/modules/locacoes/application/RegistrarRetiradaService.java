@@ -6,6 +6,9 @@ import com.jtarcio.closetrental.modules.locacoes.domain.model.ItemLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.Locacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.ports.LocacaoRepositoryPort;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoContextBuilder;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoService;
+import com.jtarcio.closetrental.modules.notificacoes.domain.model.TipoNotificacao;
 import com.jtarcio.closetrental.shared.exception.BusinessException;
 import com.jtarcio.closetrental.shared.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +35,8 @@ public class RegistrarRetiradaService {
     private final LocacaoRepositoryPort locacaoPort;
     private final ProdutoRepositoryPort produtoPort;
     private final EstoqueService estoqueService;
+    private final NotificacaoService notificacaoService;
+    private final NotificacaoContextBuilder contextBuilder;
 
     @Transactional
     public Locacao executar(Long locacaoId) {
@@ -59,6 +64,11 @@ public class RegistrarRetiradaService {
 
         log.info("Retirada registrada: locacaoId={}, produtos={}, retiradaAt={}",
                 salva.getId(), salva.getProdutoIds(), salva.getRetiradaAt());
+
+        contextBuilder.construir(salva).ifPresent(r ->
+            notificacaoService.enviar(TipoNotificacao.RETIRADA_REGISTRADA, r.email(), r.tenantId(), r.contexto())
+        );
+
         return salva;
     }
 }

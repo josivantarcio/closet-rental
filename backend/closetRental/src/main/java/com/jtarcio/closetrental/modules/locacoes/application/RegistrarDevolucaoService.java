@@ -8,6 +8,9 @@ import com.jtarcio.closetrental.modules.locacoes.domain.model.Locacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.ports.DanoProdutoRepositoryPort;
 import com.jtarcio.closetrental.modules.locacoes.domain.ports.LocacaoRepositoryPort;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoContextBuilder;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoService;
+import com.jtarcio.closetrental.modules.notificacoes.domain.model.TipoNotificacao;
 import com.jtarcio.closetrental.shared.exception.BusinessException;
 import com.jtarcio.closetrental.shared.exception.EntityNotFoundException;
 import com.jtarcio.closetrental.shared.tenant.TenantContext;
@@ -45,6 +48,8 @@ public class RegistrarDevolucaoService {
     private final ProdutoRepositoryPort produtoPort;
     private final EstoqueService estoqueService;
     private final DanoProdutoRepositoryPort danoPort;
+    private final NotificacaoService notificacaoService;
+    private final NotificacaoContextBuilder contextBuilder;
 
     @Value("${app.locacao.percentual-multa-diaria:0.10}")
     private BigDecimal percentualMultaDiaria;
@@ -130,6 +135,11 @@ public class RegistrarDevolucaoService {
         log.info("Devolucao registrada: locacaoId={}, produtos={}, multa={}, statusCaucao={}, caucaoRetida={}, devolucaoAt={}",
                 salva.getId(), salva.getProdutoIds(), salva.getMulta(),
                 salva.getStatusCaucao(), salva.getCaucaoRetida(), salva.getDevolucaoAt());
+
+        contextBuilder.construir(salva).ifPresent(r ->
+            notificacaoService.enviar(TipoNotificacao.DEVOLUCAO_REGISTRADA, r.email(), r.tenantId(), r.contexto())
+        );
+
         return salva;
     }
 }

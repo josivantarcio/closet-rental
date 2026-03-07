@@ -4,6 +4,9 @@ import com.jtarcio.closetrental.modules.locacoes.domain.model.ItemLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.Locacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.model.StatusLocacao;
 import com.jtarcio.closetrental.modules.locacoes.domain.ports.LocacaoRepositoryPort;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoContextBuilder;
+import com.jtarcio.closetrental.modules.notificacoes.application.NotificacaoService;
+import com.jtarcio.closetrental.modules.notificacoes.domain.model.TipoNotificacao;
 import com.jtarcio.closetrental.modules.tenants.domain.model.Tenant;
 import com.jtarcio.closetrental.modules.tenants.domain.ports.TenantRepositoryPort;
 import com.jtarcio.closetrental.shared.exception.BusinessException;
@@ -37,6 +40,8 @@ public class CancelarReservaService {
 
     private final LocacaoRepositoryPort locacaoPort;
     private final TenantRepositoryPort tenantPort;
+    private final NotificacaoService notificacaoService;
+    private final NotificacaoContextBuilder contextBuilder;
 
     @Transactional
     public Locacao executar(Long locacaoId, String motivoCancelamento) {
@@ -60,6 +65,11 @@ public class CancelarReservaService {
 
         Locacao salva = locacaoPort.salvar(locacao);
         log.info("Reserva cancelada: locacaoId={}, multaCancelamento={}", salva.getId(), multaCancelamento);
+
+        contextBuilder.construir(salva).ifPresent(r ->
+            notificacaoService.enviar(TipoNotificacao.CANCELAMENTO_RESERVA, r.email(), r.tenantId(), r.contexto())
+        );
+
         return salva;
     }
 

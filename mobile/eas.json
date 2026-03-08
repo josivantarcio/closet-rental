@@ -13,7 +13,9 @@
     "preview": {
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "image": "latest",
+        "ndk": "26.1.10909125"
       }
     },
     "production": {

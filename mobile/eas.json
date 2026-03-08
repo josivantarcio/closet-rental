@@ -12,10 +12,12 @@
     },
     "preview": {
       "distribution": "internal",
+      "env": {
+        "ANDROID_NDK_HOME": "/home/expo/Android/Sdk/ndk/26.1.10909125"
+      },
       "android": {
         "buildType": "apk",
-        "image": "latest",
-        "ndk": "26.1.10909125"
+        "image": "ubuntu-22.04-jdk-17-ndk-r26b"
       }
     },
     "production": {

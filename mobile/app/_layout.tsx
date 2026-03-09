@@ -3,7 +3,6 @@ import { Stack } from "expo-router";
 import { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { useAuthStore } from "@/store/auth.store";
-import "../global.css";
 
 const queryClient = new QueryClient({
   defaultOptions: {

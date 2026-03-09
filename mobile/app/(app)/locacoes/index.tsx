@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Alert, FlatList, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -18,46 +18,46 @@ function LocacaoCard({ loc, onAction }: { loc: LocacaoResponse; onAction: (id: n
   const nomePecas = loc.itens?.map((i) => i.nomeProduto).join(", ") ?? `#${loc.id}`;
 
   return (
-    <Card className="gap-3">
-      <View className="flex-row justify-between items-start">
-        <View className="flex-1 mr-2">
-          <Text className="text-white font-semibold text-base" numberOfLines={1}>{nomePecas}</Text>
-          <Text className="text-white/50 text-sm">{loc.clienteNome ?? `Cliente #${loc.clienteId}`}</Text>
+    <Card style={styles.card}>
+      <View style={styles.cardHeader}>
+        <View style={styles.cardTitleSection}>
+          <Text style={styles.cardTitle} numberOfLines={1}>{nomePecas}</Text>
+          <Text style={styles.cardCliente}>{loc.clienteNome ?? `Cliente #${loc.clienteId}`}</Text>
         </View>
         <Badge status={loc.status} type="locacao" />
       </View>
 
-      <View className="flex-row gap-4">
+      <View style={styles.cardInfoRow}>
         <View>
-          <Text className="text-white/40 text-xs">Período</Text>
-          <Text className="text-white/80 text-sm">{loc.dataInicio} → {loc.dataFim}</Text>
+          <Text style={styles.infoLabel}>Período</Text>
+          <Text style={styles.infoValue}>{loc.dataInicio} → {loc.dataFim}</Text>
         </View>
         <View>
-          <Text className="text-white/40 text-xs">Total</Text>
-          <Text className="text-white/80 text-sm font-semibold">R$ {loc.valorTotal.toFixed(2)}</Text>
+          <Text style={styles.infoLabel}>Total</Text>
+          <Text style={styles.infoValueBold}>R$ {loc.valorTotal.toFixed(2)}</Text>
         </View>
       </View>
 
       {loc.atrasada && (
-        <View className="bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
-          <Text className="text-red-400 text-xs font-semibold">⚠ Locação em atraso</Text>
+        <View style={styles.atrasadaBanner}>
+          <Text style={styles.atrasadaText}>⚠ Locação em atraso</Text>
         </View>
       )}
 
       {/* Ações contextuais */}
-      <View className="flex-row gap-2">
+      <View style={styles.actionsRow}>
         {loc.status === "RESERVADO" && (
           <>
-            <View className="flex-1">
+            <View style={styles.actionFlex}>
               <Button title="Retirar" size="sm" onPress={() => onAction(loc.id, "retirar")} />
             </View>
-            <View className="flex-1">
+            <View style={styles.actionFlex}>
               <Button title="Cancelar" size="sm" variant="danger" onPress={() => onAction(loc.id, "cancelar")} />
             </View>
           </>
         )}
         {loc.status === "RETIRADO" && (
-          <View className="flex-1">
+          <View style={styles.actionFlex}>
             <Button title="Registrar Devolução" size="sm" onPress={() => onAction(loc.id, "devolver")} />
           </View>
         )}
@@ -95,20 +95,20 @@ export default function LocacoesScreen() {
   };
 
   return (
-    <View className="flex-1 bg-surface">
-      <View className="pt-14 px-4 pb-3">
-        <Text className="text-white text-2xl font-bold">Locações</Text>
+    <View style={styles.container}>
+      <View style={styles.headerSection}>
+        <Text style={styles.title}>Locações</Text>
       </View>
 
       {/* Tabs */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mb-3" contentContainerStyle={{ gap: 8 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsScroll} contentContainerStyle={styles.tabsContent}>
         {tabs.map((t) => (
           <TouchableOpacity
             key={t.label}
             onPress={() => { setTab(t.value); setPage(0); }}
-            className={`px-4 py-2 rounded-full border ${tab === t.value ? "bg-primary border-primary" : "border-border"}`}
+            style={[styles.tab, tab === t.value ? styles.tabActive : styles.tabInactive]}
           >
-            <Text className={`text-sm font-semibold ${tab === t.value ? "text-white" : "text-white/50"}`}>{t.label}</Text>
+            <Text style={[styles.tabText, tab === t.value ? styles.tabTextActive : styles.tabTextInactive]}>{t.label}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -117,12 +117,12 @@ export default function LocacoesScreen() {
         data={data?.content ?? []}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => <LocacaoCard loc={item} onAction={handleAction} />}
-        contentContainerStyle={{ padding: 16, gap: 12 }}
+        contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           isLoading ? (
-            <Text className="text-white/40 text-center mt-10">Carregando...</Text>
+            <Text style={styles.emptyText}>Carregando...</Text>
           ) : (
-            <Text className="text-white/40 text-center mt-10">Nenhuma locação encontrada.</Text>
+            <Text style={styles.emptyText}>Nenhuma locação encontrada.</Text>
           )
         }
         ListFooterComponent={
@@ -134,3 +134,118 @@ export default function LocacoesScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#1a1a1a",
+  },
+  headerSection: {
+    paddingTop: 56,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  title: {
+    color: "#ffffff",
+    fontSize: 24,
+    fontWeight: "700",
+  },
+  tabsScroll: {
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  tabsContent: {
+    gap: 8,
+    paddingHorizontal: 16,
+  },
+  tab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  tabActive: {
+    backgroundColor: "#e91e8c",
+    borderColor: "#e91e8c",
+  },
+  tabInactive: {
+    borderColor: "#3a3a3a",
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  tabTextActive: {
+    color: "#ffffff",
+  },
+  tabTextInactive: {
+    color: "rgba(255,255,255,0.5)",
+  },
+  listContent: {
+    padding: 16,
+    gap: 12,
+  },
+  card: {
+    gap: 12,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  cardTitleSection: {
+    flex: 1,
+    marginRight: 8,
+  },
+  cardTitle: {
+    color: "#ffffff",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  cardCliente: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 14,
+  },
+  cardInfoRow: {
+    flexDirection: "row",
+    gap: 16,
+  },
+  infoLabel: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 12,
+  },
+  infoValue: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 14,
+  },
+  infoValueBold: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  atrasadaBanner: {
+    backgroundColor: "rgba(239,68,68,0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(239,68,68,0.3)",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  atrasadaText: {
+    color: "#f87171",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  actionsRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  actionFlex: {
+    flex: 1,
+  },
+  emptyText: {
+    color: "rgba(255,255,255,0.4)",
+    textAlign: "center",
+    marginTop: 40,
+  },
+});

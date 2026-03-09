@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Card } from "@/components/ui/Card";
 import { relatoriosService } from "@/lib/services/relatorios.service";
 
@@ -27,62 +27,62 @@ export default function RelatoriosScreen() {
   const totalLocacoes = faturamento?.reduce((acc, m) => acc + m.totalLocacoes, 0) ?? 0;
 
   return (
-    <ScrollView className="flex-1 bg-surface" contentContainerStyle={{ padding: 16, gap: 16 }}>
-      <View className="pt-10 pb-2">
-        <Text className="text-white text-2xl font-bold">Relatórios</Text>
-        <Text className="text-white/40 text-sm">Últimos 6 meses</Text>
+    <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Relatórios</Text>
+        <Text style={styles.subtitle}>Últimos 6 meses</Text>
       </View>
 
       {/* KPIs gerais */}
-      <View className="flex-row gap-3">
-        <Card className="flex-1 items-center gap-1">
-          <Text className="text-green-400 text-xl font-bold">R$ {totalReceita.toFixed(0)}</Text>
-          <Text className="text-white/40 text-xs text-center">Receita total</Text>
+      <View style={styles.kpiRow}>
+        <Card style={styles.kpiCard}>
+          <Text style={styles.kpiReceita}>R$ {totalReceita.toFixed(0)}</Text>
+          <Text style={styles.kpiLabel}>Receita total</Text>
         </Card>
-        <Card className="flex-1 items-center gap-1">
-          <Text className="text-blue-400 text-xl font-bold">{totalLocacoes}</Text>
-          <Text className="text-white/40 text-xs text-center">Locações</Text>
+        <Card style={styles.kpiCard}>
+          <Text style={styles.kpiLocacoes}>{totalLocacoes}</Text>
+          <Text style={styles.kpiLabel}>Locações</Text>
         </Card>
-        <Card className="flex-1 items-center gap-1">
-          <Text className="text-red-400 text-xl font-bold">{atrasos?.length ?? 0}</Text>
-          <Text className="text-white/40 text-xs text-center">Em atraso</Text>
+        <Card style={styles.kpiCard}>
+          <Text style={styles.kpiAtrasos}>{atrasos?.length ?? 0}</Text>
+          <Text style={styles.kpiLabel}>Em atraso</Text>
         </Card>
       </View>
 
       {/* Faturamento mensal */}
-      <Text className="text-white font-semibold text-lg">Faturamento por mês</Text>
+      <Text style={styles.sectionTitle}>Faturamento por mês</Text>
       {faturamento?.map((m) => (
-        <Card key={m.mes} className="flex-row justify-between items-center">
-          <Text className="text-white/70">{m.mes}</Text>
-          <View className="items-end">
-            <Text className="text-white font-semibold">R$ {m.receitaBruta.toFixed(2)}</Text>
-            <Text className="text-white/40 text-xs">{m.totalLocacoes} locações</Text>
+        <Card key={m.mes} style={styles.fatCard}>
+          <Text style={styles.fatMes}>{m.mes}</Text>
+          <View style={styles.fatRight}>
+            <Text style={styles.fatReceita}>R$ {m.receitaBruta.toFixed(2)}</Text>
+            <Text style={styles.fatLocacoes}>{m.totalLocacoes} locações</Text>
           </View>
         </Card>
       ))}
 
       {/* Peças mais alugadas */}
-      <Text className="text-white font-semibold text-lg mt-2">Top 10 peças</Text>
+      <Text style={[styles.sectionTitle, styles.sectionTitleMargin]}>Top 10 peças</Text>
       {pecas?.map((p, i) => (
-        <Card key={p.produtoId} className="flex-row items-center gap-3">
-          <Text className="text-primary font-bold text-lg w-6">{i + 1}</Text>
-          <View className="flex-1">
-            <Text className="text-white font-medium" numberOfLines={1}>{p.nomeProduto}</Text>
-            <Text className="text-white/40 text-xs">{p.totalLocacoes} locações</Text>
+        <Card key={p.produtoId} style={styles.pecaCard}>
+          <Text style={styles.pecaRank}>{i + 1}</Text>
+          <View style={styles.pecaInfo}>
+            <Text style={styles.pecaNome} numberOfLines={1}>{p.nomeProduto}</Text>
+            <Text style={styles.pecaLocacoes}>{p.totalLocacoes} locações</Text>
           </View>
-          <Text className="text-green-400 font-semibold">R$ {p.receitaTotal.toFixed(0)}</Text>
+          <Text style={styles.pecaReceita}>R$ {p.receitaTotal.toFixed(0)}</Text>
         </Card>
       ))}
 
       {/* Atrasos */}
       {(atrasos?.length ?? 0) > 0 && (
         <>
-          <Text className="text-white font-semibold text-lg mt-2">Atrasos pendentes</Text>
+          <Text style={[styles.sectionTitle, styles.sectionTitleMargin]}>Atrasos pendentes</Text>
           {atrasos?.map((a) => (
-            <Card key={a.locacaoId} className="border-red-500/30 gap-1">
-              <Text className="text-white font-medium">{a.clienteNome}</Text>
-              <Text className="text-white/50 text-sm">Locação #{a.locacaoId} · {a.diasAtraso} dias</Text>
-              <Text className="text-red-400 font-semibold">Multa: R$ {a.multaEstimada.toFixed(2)}</Text>
+            <Card key={a.locacaoId} style={styles.atrasoCard}>
+              <Text style={styles.atrasoCliente}>{a.clienteNome}</Text>
+              <Text style={styles.atrasoInfo}>Locação #{a.locacaoId} · {a.diasAtraso} dias</Text>
+              <Text style={styles.atrasoMulta}>Multa: R$ {a.multaEstimada.toFixed(2)}</Text>
             </Card>
           ))}
         </>
@@ -90,3 +90,125 @@ export default function RelatoriosScreen() {
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  scroll: {
+    flex: 1,
+    backgroundColor: "#1a1a1a",
+  },
+  content: {
+    padding: 16,
+    gap: 16,
+  },
+  header: {
+    paddingTop: 40,
+    paddingBottom: 8,
+  },
+  title: {
+    color: "#ffffff",
+    fontSize: 24,
+    fontWeight: "700",
+  },
+  subtitle: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 14,
+  },
+  kpiRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  kpiCard: {
+    flex: 1,
+    alignItems: "center",
+    gap: 4,
+  },
+  kpiReceita: {
+    color: "#4ade80",
+    fontSize: 20,
+    fontWeight: "700",
+  },
+  kpiLocacoes: {
+    color: "#60a5fa",
+    fontSize: 20,
+    fontWeight: "700",
+  },
+  kpiAtrasos: {
+    color: "#f87171",
+    fontSize: 20,
+    fontWeight: "700",
+  },
+  kpiLabel: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 12,
+    textAlign: "center",
+  },
+  sectionTitle: {
+    color: "#ffffff",
+    fontWeight: "600",
+    fontSize: 18,
+  },
+  sectionTitleMargin: {
+    marginTop: 8,
+  },
+  fatCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  fatMes: {
+    color: "rgba(255,255,255,0.7)",
+  },
+  fatRight: {
+    alignItems: "flex-end",
+  },
+  fatReceita: {
+    color: "#ffffff",
+    fontWeight: "600",
+  },
+  fatLocacoes: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 12,
+  },
+  pecaCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  pecaRank: {
+    color: "#e91e8c",
+    fontWeight: "700",
+    fontSize: 18,
+    width: 24,
+  },
+  pecaInfo: {
+    flex: 1,
+  },
+  pecaNome: {
+    color: "#ffffff",
+    fontWeight: "500",
+  },
+  pecaLocacoes: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 12,
+  },
+  pecaReceita: {
+    color: "#4ade80",
+    fontWeight: "600",
+  },
+  atrasoCard: {
+    borderColor: "rgba(239,68,68,0.3)",
+    gap: 4,
+  },
+  atrasoCliente: {
+    color: "#ffffff",
+    fontWeight: "500",
+  },
+  atrasoInfo: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 14,
+  },
+  atrasoMulta: {
+    color: "#f87171",
+    fontWeight: "600",
+  },
+});

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -40,37 +40,37 @@ export default function MinhaContaClienteScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-surface" contentContainerStyle={{ padding: 20, gap: 20 }}>
-      <View className="pt-10 pb-2">
-        <Text className="text-white text-3xl font-bold">Minha Conta</Text>
-        <Text className="text-white/50 text-base">@{username}</Text>
+    <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Minha Conta</Text>
+        <Text style={styles.subtitle}>@{username}</Text>
       </View>
 
       {/* Perfil */}
       {perfil && (
-        <Card className="gap-3">
-          <Text className="text-white font-semibold text-lg">{perfil.nome}</Text>
-          <Text className="text-white/50">{perfil.email}</Text>
-          <Text className="text-white/30 text-xs">Membro desde {new Date(perfil.createdAt).toLocaleDateString("pt-BR")}</Text>
+        <Card style={styles.perfilCard}>
+          <Text style={styles.perfilNome}>{perfil.nome}</Text>
+          <Text style={styles.perfilEmail}>{perfil.email}</Text>
+          <Text style={styles.perfilMembro}>Membro desde {new Date(perfil.createdAt).toLocaleDateString("pt-BR")}</Text>
         </Card>
       )}
 
       {/* Minhas locações resumo */}
       <View>
-        <Text className="text-white font-semibold text-lg mb-3">Minhas Locações</Text>
+        <Text style={styles.sectionTitle}>Minhas Locações</Text>
         {locacoes?.content.length === 0 && (
-          <Text className="text-white/40">Nenhuma locação encontrada.</Text>
+          <Text style={styles.emptyText}>Nenhuma locação encontrada.</Text>
         )}
         {locacoes?.content.slice(0, 5).map((loc) => (
-          <Card key={loc.id} className="mb-3 gap-2">
-            <View className="flex-row justify-between items-center">
-              <Text className="text-white font-medium flex-1 mr-2" numberOfLines={1}>
+          <Card key={loc.id} style={styles.locacaoCard}>
+            <View style={styles.locacaoHeader}>
+              <Text style={styles.locacaoNome} numberOfLines={1}>
                 {loc.itens?.map((i) => i.nomeProduto).join(", ") ?? `Locação #${loc.id}`}
               </Text>
               <Badge status={loc.status} type="locacao" />
             </View>
-            <Text className="text-white/50 text-sm">{loc.dataInicio} → {loc.dataFim}</Text>
-            <Text className="text-white/70 font-semibold">R$ {loc.valorTotal.toFixed(2)}</Text>
+            <Text style={styles.locacaoPeriodo}>{loc.dataInicio} → {loc.dataFim}</Text>
+            <Text style={styles.locacaoValor}>R$ {loc.valorTotal.toFixed(2)}</Text>
           </Card>
         ))}
       </View>
@@ -78,15 +78,15 @@ export default function MinhaContaClienteScreen() {
       {/* Meus pagamentos resumo */}
       {(pagamentos?.totalElements ?? 0) > 0 && (
         <View>
-          <Text className="text-white font-semibold text-lg mb-3">Meus Pagamentos</Text>
+          <Text style={styles.sectionTitle}>Meus Pagamentos</Text>
           {pagamentos?.content.slice(0, 3).map((pag) => (
-            <Card key={pag.id} className="mb-3 flex-row justify-between items-center">
+            <Card key={pag.id} style={styles.pagamentoCard}>
               <View>
-                <Text className="text-white font-medium">Locação #{pag.locacaoId}</Text>
-                <Text className="text-white/50 text-sm">{pag.metodo}</Text>
+                <Text style={styles.pagamentoLocacao}>Locação #{pag.locacaoId}</Text>
+                <Text style={styles.pagamentoMetodo}>{pag.metodo}</Text>
               </View>
-              <View className="items-end gap-1">
-                <Text className="text-white font-bold">R$ {pag.valor.toFixed(2)}</Text>
+              <View style={styles.pagamentoRight}>
+                <Text style={styles.pagamentoValor}>R$ {pag.valor.toFixed(2)}</Text>
                 <Badge status={pag.status} type="pagamento" />
               </View>
             </Card>
@@ -98,3 +98,96 @@ export default function MinhaContaClienteScreen() {
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  scroll: {
+    flex: 1,
+    backgroundColor: "#1a1a1a",
+  },
+  content: {
+    padding: 20,
+    gap: 20,
+  },
+  header: {
+    paddingTop: 40,
+    paddingBottom: 8,
+  },
+  title: {
+    color: "#ffffff",
+    fontSize: 30,
+    fontWeight: "700",
+  },
+  subtitle: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 16,
+  },
+  perfilCard: {
+    gap: 12,
+  },
+  perfilNome: {
+    color: "#ffffff",
+    fontWeight: "600",
+    fontSize: 18,
+  },
+  perfilEmail: {
+    color: "rgba(255,255,255,0.5)",
+  },
+  perfilMembro: {
+    color: "rgba(255,255,255,0.3)",
+    fontSize: 12,
+  },
+  sectionTitle: {
+    color: "#ffffff",
+    fontWeight: "600",
+    fontSize: 18,
+    marginBottom: 12,
+  },
+  emptyText: {
+    color: "rgba(255,255,255,0.4)",
+  },
+  locacaoCard: {
+    marginBottom: 12,
+    gap: 8,
+  },
+  locacaoHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  locacaoNome: {
+    color: "#ffffff",
+    fontWeight: "500",
+    flex: 1,
+    marginRight: 8,
+  },
+  locacaoPeriodo: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 14,
+  },
+  locacaoValor: {
+    color: "rgba(255,255,255,0.7)",
+    fontWeight: "600",
+  },
+  pagamentoCard: {
+    marginBottom: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  pagamentoLocacao: {
+    color: "#ffffff",
+    fontWeight: "500",
+  },
+  pagamentoMetodo: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 14,
+  },
+  pagamentoRight: {
+    alignItems: "flex-end",
+    gap: 4,
+  },
+  pagamentoValor: {
+    color: "#ffffff",
+    fontWeight: "700",
+  },
+});

@@ -1,11 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Alert, FlatList, Text, View } from "react-native";
+import { useState } from "react";
+import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { pagamentosService } from "@/lib/services/pagamentos.service";
 import type { PagamentoResponse } from "@/types";
-import { useState } from "react";
 
 const metodoLabel: Record<string, string> = {
   DINHEIRO: "Dinheiro",
@@ -17,14 +17,14 @@ const metodoLabel: Record<string, string> = {
 
 function PagamentoCard({ pag, onEstornar }: { pag: PagamentoResponse; onEstornar: (id: number) => void }) {
   return (
-    <Card className="gap-3">
-      <View className="flex-row justify-between items-center">
+    <Card style={styles.card}>
+      <View style={styles.cardHeader}>
         <View>
-          <Text className="text-white font-semibold">Locação #{pag.locacaoId}</Text>
-          <Text className="text-white/50 text-sm">{metodoLabel[pag.metodo] ?? pag.metodo}</Text>
+          <Text style={styles.locacaoLabel}>Locação #{pag.locacaoId}</Text>
+          <Text style={styles.metodoLabel}>{metodoLabel[pag.metodo] ?? pag.metodo}</Text>
         </View>
-        <View className="items-end gap-1">
-          <Text className="text-white font-bold text-lg">R$ {pag.valor.toFixed(2)}</Text>
+        <View style={styles.cardRight}>
+          <Text style={styles.valorText}>R$ {pag.valor.toFixed(2)}</Text>
           <Badge status={pag.status} type="pagamento" />
         </View>
       </View>
@@ -60,12 +60,12 @@ export default function PagamentosScreen() {
   const totalPago = data?.content.filter((p) => p.status === "PAGO").reduce((acc, p) => acc + p.valor, 0) ?? 0;
 
   return (
-    <View className="flex-1 bg-surface">
-      <View className="pt-14 px-4 pb-3 gap-3">
-        <Text className="text-white text-2xl font-bold">Pagamentos</Text>
-        <Card className="flex-row justify-between">
-          <Text className="text-white/50">Total recebido (página)</Text>
-          <Text className="text-green-400 font-bold">R$ {totalPago.toFixed(2)}</Text>
+    <View style={styles.container}>
+      <View style={styles.headerSection}>
+        <Text style={styles.title}>Pagamentos</Text>
+        <Card style={styles.totalCard}>
+          <Text style={styles.totalLabel}>Total recebido (página)</Text>
+          <Text style={styles.totalValue}>R$ {totalPago.toFixed(2)}</Text>
         </Card>
       </View>
 
@@ -73,11 +73,11 @@ export default function PagamentosScreen() {
         data={data?.content ?? []}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => <PagamentoCard pag={item} onEstornar={handleEstornar} />}
-        contentContainerStyle={{ padding: 16, gap: 12 }}
+        contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           isLoading
-            ? <Text className="text-white/40 text-center mt-10">Carregando...</Text>
-            : <Text className="text-white/40 text-center mt-10">Nenhum pagamento encontrado.</Text>
+            ? <Text style={styles.emptyText}>Carregando...</Text>
+            : <Text style={styles.emptyText}>Nenhum pagamento encontrado.</Text>
         }
         ListFooterComponent={
           data && !data.last ? (
@@ -88,3 +88,66 @@ export default function PagamentosScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#1a1a1a",
+  },
+  headerSection: {
+    paddingTop: 56,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    gap: 12,
+  },
+  title: {
+    color: "#ffffff",
+    fontSize: 24,
+    fontWeight: "700",
+  },
+  totalCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  totalLabel: {
+    color: "rgba(255,255,255,0.5)",
+  },
+  totalValue: {
+    color: "#4ade80",
+    fontWeight: "700",
+  },
+  listContent: {
+    padding: 16,
+    gap: 12,
+  },
+  card: {
+    gap: 12,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  locacaoLabel: {
+    color: "#ffffff",
+    fontWeight: "600",
+  },
+  metodoLabel: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 14,
+  },
+  cardRight: {
+    alignItems: "flex-end",
+    gap: 4,
+  },
+  valorText: {
+    color: "#ffffff",
+    fontWeight: "700",
+    fontSize: 18,
+  },
+  emptyText: {
+    color: "rgba(255,255,255,0.4)",
+    textAlign: "center",
+    marginTop: 40,
+  },
+});

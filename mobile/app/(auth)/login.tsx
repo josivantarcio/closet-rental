@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
-import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { z } from "zod";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -37,21 +37,21 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-surface"
+      style={styles.flex}
     >
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-        <View className="flex-1 px-6 justify-center gap-8">
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <View style={styles.inner}>
           {/* Logo */}
-          <View className="items-center gap-3">
-            <View className="w-20 h-20 bg-primary rounded-3xl items-center justify-center">
-              <Text className="text-white text-4xl">👗</Text>
+          <View style={styles.logoSection}>
+            <View style={styles.logoBox}>
+              <Text style={styles.logoEmoji}>👗</Text>
             </View>
-            <Text className="text-white text-3xl font-bold">Atelier</Text>
-            <Text className="text-white/50 text-base">Gestão de Aluguel de Moda</Text>
+            <Text style={styles.logoTitle}>Atelier</Text>
+            <Text style={styles.logoSubtitle}>Gestão de Aluguel de Moda</Text>
           </View>
 
           {/* Form */}
-          <View className="gap-4">
+          <View style={styles.formSection}>
             <Controller
               control={control}
               name="username"
@@ -68,6 +68,8 @@ export default function LoginScreen() {
               )}
             />
 
+            <View style={styles.fieldGap} />
+
             <Controller
               control={control}
               name="password"
@@ -83,6 +85,8 @@ export default function LoginScreen() {
               )}
             />
 
+            <View style={styles.fieldGap} />
+
             <Button
               title="Entrar"
               onPress={handleSubmit(onSubmit)}
@@ -92,15 +96,16 @@ export default function LoginScreen() {
           </View>
 
           {/* Hint */}
-          <View className="bg-surface-card rounded-xl p-4 gap-1">
-            <Text className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-1">Contas de teste</Text>
+          <View style={styles.hint}>
+            <Text style={styles.hintTitle}>Contas de teste</Text>
             {[
               ["admin", "admin123", "Admin"],
               ["atendente", "atendente123", "Atendente"],
               ["cliente", "cliente123", "Cliente"],
             ].map(([u, p, r]) => (
-              <Text key={u} className="text-white/40 text-xs">
-                <Text className="text-white/60">{r}:</Text> {u} / {p}
+              <Text key={u} style={styles.hintRow}>
+                <Text style={styles.hintRole}>{r}:</Text>
+                {` ${u} / ${p}`}
               </Text>
             ))}
           </View>
@@ -109,3 +114,70 @@ export default function LoginScreen() {
     </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+    backgroundColor: "#1a1a1a",
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  inner: {
+    flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: "center",
+    gap: 32,
+  },
+  logoSection: {
+    alignItems: "center",
+    gap: 12,
+  },
+  logoBox: {
+    width: 80,
+    height: 80,
+    backgroundColor: "#e91e8c",
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoEmoji: {
+    fontSize: 36,
+  },
+  logoTitle: {
+    color: "#ffffff",
+    fontSize: 30,
+    fontWeight: "700",
+  },
+  logoSubtitle: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 16,
+  },
+  formSection: {
+    gap: 0,
+  },
+  fieldGap: {
+    height: 16,
+  },
+  hint: {
+    backgroundColor: "#2a2a2a",
+    borderRadius: 12,
+    padding: 16,
+    gap: 4,
+  },
+  hintTitle: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  hintRow: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 12,
+  },
+  hintRole: {
+    color: "rgba(255,255,255,0.6)",
+  },
+});

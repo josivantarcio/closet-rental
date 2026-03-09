@@ -1,4 +1,4 @@
-import { ActivityIndicator, Pressable, Text } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
 
 interface ButtonProps {
   title: string;
@@ -9,32 +9,119 @@ interface ButtonProps {
   size?: "sm" | "md" | "lg";
 }
 
-const variantStyles = {
-  primary: { container: "bg-primary active:bg-primary-dark", text: "text-white font-semibold" },
-  outline: { container: "border border-primary active:bg-primary/10", text: "text-primary font-semibold" },
-  ghost: { container: "active:bg-white/10", text: "text-white/70 font-medium" },
-  danger: { container: "bg-red-600 active:bg-red-700", text: "text-white font-semibold" },
-};
-
-const sizeStyles = {
-  sm: { container: "px-3 py-1.5 rounded-lg", text: "text-sm" },
-  md: { container: "px-4 py-3 rounded-xl", text: "text-base" },
-  lg: { container: "px-6 py-4 rounded-xl", text: "text-lg" },
-};
-
 export function Button({ title, onPress, loading, disabled, variant = "primary", size = "md" }: ButtonProps) {
-  const v = variantStyles[variant];
-  const s = sizeStyles[size];
   const isDisabled = disabled || loading;
+
+  const containerStyles = [
+    styles.base,
+    styles[`variant_${variant}`],
+    styles[`size_${size}`],
+    isDisabled && styles.disabled,
+  ];
+
+  const textStyles = [
+    styles[`text_${variant}`],
+    styles[`textSize_${size}`],
+  ];
 
   return (
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
-      className={`${v.container} ${s.container} items-center justify-center flex-row gap-2 ${isDisabled ? "opacity-50" : ""}`}
+      style={({ pressed }) => [
+        ...containerStyles,
+        pressed && styles[`pressed_${variant}`],
+      ]}
     >
-      {loading && <ActivityIndicator size="small" color="white" />}
-      <Text className={`${v.text} ${s.text}`}>{title}</Text>
+      {loading && <ActivityIndicator size="small" color="white" style={styles.indicator} />}
+      <Text style={textStyles}>{title}</Text>
     </Pressable>
   );
 }
+
+const styles = StyleSheet.create({
+  base: {
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+  },
+  indicator: {
+    marginRight: 8,
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+
+  // Variant containers
+  variant_primary: {
+    backgroundColor: "#e91e8c",
+  },
+  variant_outline: {
+    borderWidth: 1,
+    borderColor: "#e91e8c",
+  },
+  variant_ghost: {},
+  variant_danger: {
+    backgroundColor: "#dc2626",
+  },
+
+  // Pressed states
+  pressed_primary: {
+    backgroundColor: "#c2185b",
+  },
+  pressed_outline: {
+    backgroundColor: "rgba(233,30,140,0.1)",
+  },
+  pressed_ghost: {
+    backgroundColor: "rgba(255,255,255,0.1)",
+  },
+  pressed_danger: {
+    backgroundColor: "#b91c1c",
+  },
+
+  // Variant text
+  text_primary: {
+    color: "#ffffff",
+    fontWeight: "600",
+  },
+  text_outline: {
+    color: "#e91e8c",
+    fontWeight: "600",
+  },
+  text_ghost: {
+    color: "rgba(255,255,255,0.7)",
+    fontWeight: "500",
+  },
+  text_danger: {
+    color: "#ffffff",
+    fontWeight: "600",
+  },
+
+  // Size containers
+  size_sm: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  size_md: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  size_lg: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 12,
+  },
+
+  // Size text
+  textSize_sm: {
+    fontSize: 14,
+  },
+  textSize_md: {
+    fontSize: 16,
+  },
+  textSize_lg: {
+    fontSize: 18,
+  },
+});

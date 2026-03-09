@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -9,15 +9,15 @@ import type { ClienteResponse } from "@/types";
 
 function ClienteCard({ cliente, onToggle }: { cliente: ClienteResponse; onToggle: (id: number, ativo: boolean) => void }) {
   return (
-    <Card className="gap-3">
-      <View className="flex-row justify-between items-start">
-        <View className="flex-1">
-          <Text className="text-white font-semibold text-base">{cliente.nome}</Text>
-          <Text className="text-white/50 text-sm">{cliente.email}</Text>
-          <Text className="text-white/40 text-xs mt-0.5">{cliente.telefone}</Text>
+    <Card style={styles.card}>
+      <View style={styles.cardHeader}>
+        <View style={styles.cardInfo}>
+          <Text style={styles.clienteNome}>{cliente.nome}</Text>
+          <Text style={styles.clienteEmail}>{cliente.email}</Text>
+          <Text style={styles.clienteTelefone}>{cliente.telefone}</Text>
         </View>
-        <View className={`px-2.5 py-1 rounded-full ${cliente.ativo ? "bg-green-500/20" : "bg-red-500/20"}`}>
-          <Text className={`text-xs font-semibold ${cliente.ativo ? "text-green-400" : "text-red-400"}`}>
+        <View style={[styles.statusBadge, cliente.ativo ? styles.statusAtivo : styles.statusInativo]}>
+          <Text style={[styles.statusText, cliente.ativo ? styles.statusTextAtivo : styles.statusTextInativo]}>
             {cliente.ativo ? "Ativo" : "Inativo"}
           </Text>
         </View>
@@ -57,9 +57,9 @@ export default function ClientesScreen() {
   };
 
   return (
-    <View className="flex-1 bg-surface">
-      <View className="pt-14 px-4 pb-3 gap-3">
-        <Text className="text-white text-2xl font-bold">Clientes</Text>
+    <View style={styles.container}>
+      <View style={styles.headerSection}>
+        <Text style={styles.title}>Clientes</Text>
         <Input
           placeholder="Buscar por nome..."
           value={search}
@@ -71,11 +71,11 @@ export default function ClientesScreen() {
         data={data?.content ?? []}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => <ClienteCard cliente={item} onToggle={handleToggle} />}
-        contentContainerStyle={{ padding: 16, gap: 12 }}
+        contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           isLoading
-            ? <Text className="text-white/40 text-center mt-10">Carregando...</Text>
-            : <Text className="text-white/40 text-center mt-10">Nenhum cliente encontrado.</Text>
+            ? <Text style={styles.emptyText}>Carregando...</Text>
+            : <Text style={styles.emptyText}>Nenhum cliente encontrado.</Text>
         }
         ListFooterComponent={
           data && !data.last ? (
@@ -86,3 +86,76 @@ export default function ClientesScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#1a1a1a",
+  },
+  headerSection: {
+    paddingTop: 56,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    gap: 12,
+  },
+  title: {
+    color: "#ffffff",
+    fontSize: 24,
+    fontWeight: "700",
+  },
+  listContent: {
+    padding: 16,
+    gap: 12,
+  },
+  card: {
+    gap: 12,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  cardInfo: {
+    flex: 1,
+  },
+  clienteNome: {
+    color: "#ffffff",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  clienteEmail: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 14,
+  },
+  clienteTelefone: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 12,
+    marginTop: 2,
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  statusAtivo: {
+    backgroundColor: "rgba(34,197,94,0.2)",
+  },
+  statusInativo: {
+    backgroundColor: "rgba(239,68,68,0.2)",
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  statusTextAtivo: {
+    color: "#4ade80",
+  },
+  statusTextInativo: {
+    color: "#f87171",
+  },
+  emptyText: {
+    color: "rgba(255,255,255,0.4)",
+    textAlign: "center",
+    marginTop: 40,
+  },
+});

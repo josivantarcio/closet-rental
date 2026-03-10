@@ -13,7 +13,8 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "ANDROID_NDK_HOME": "/home/expo/Android/Sdk/ndk/26.1.10909125"
+        "ANDROID_NDK_HOME": "/home/expo/Android/Sdk/ndk/26.1.10909125",
+        "EXPO_PUBLIC_API_URL": "http://192.168.1.111:8080"
       },
       "android": {
         "buildType": "apk",

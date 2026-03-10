@@ -1,16 +1,25 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://10.0.2.2:8080";
+const DEFAULT_API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://10.0.2.2:8080";
+
+export const SERVER_URL_KEY = "server_url";
+
+export async function getApiUrl(): Promise<string> {
+  const saved = await SecureStore.getItemAsync(SERVER_URL_KEY);
+  return saved ?? DEFAULT_API_URL;
+}
 
 export const api = axios.create({
-  baseURL: API_URL,
+  baseURL: DEFAULT_API_URL,
   timeout: 15000,
   headers: { "Content-Type": "application/json" },
 });
 
-// Injeta Bearer token em todas as requisições
+// Atualiza a baseURL dinamicamente antes de cada request
 api.interceptors.request.use(async (config) => {
+  config.baseURL = await getApiUrl();
+
   const token = await SecureStore.getItemAsync("access_token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;

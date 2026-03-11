@@ -29,6 +29,13 @@ export interface Page<T> {
 // --- Catálogo ---
 export type CategoriaProduto = "VESTIDO" | "TERNO" | "ACESSORIO" | "CALCADO" | "OUTRO";
 
+export interface PeriodoOcupadoResponse {
+  locacaoId: number;
+  dataInicio: string; // ISO date yyyy-MM-dd
+  dataFim: string;    // ISO date yyyy-MM-dd
+  status: "RESERVADO" | "RETIRADO";
+}
+
 export interface ProdutoResponse {
   id: number;
   nome: string;

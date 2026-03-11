@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import type { Page, ProdutoRequest, ProdutoResponse } from "@/types";
+import type { Page, PeriodoOcupadoResponse, ProdutoRequest, ProdutoResponse } from "@/types";
 
 export const catalogoService = {
   listar: (page = 0, size = 12) =>
@@ -37,4 +37,9 @@ export const catalogoService = {
 
   removerImagem: (id: number) =>
     api.delete<ProdutoResponse>(`/v1/catalogo/${id}/imagem`).then((r) => r.data),
+
+  buscarAgenda: (id: number, mes: string) =>
+    api
+      .get<PeriodoOcupadoResponse[]>(`/v1/catalogo/${id}/agenda`, { params: { mes } })
+      .then((r) => r.data),
 };

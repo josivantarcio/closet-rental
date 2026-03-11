@@ -1,7 +1,7 @@
 variable "aws_region" {
   description = "Região AWS"
   type        = string
-  default     = "us-east-1"
+  default     = "sa-east-1"
 }
 
 variable "project" {
@@ -68,8 +68,9 @@ variable "ecs_desired_count" {
 
 # --- ALB / ACM ---
 variable "acm_certificate_arn" {
-  description = "ARN do certificado ACM para HTTPS (us-east-1)"
+  description = "ARN do certificado ACM para HTTPS. Deixar vazio para usar só HTTP (sem domínio)."
   type        = string
+  default     = ""
 }
 
 # --- Segredos da aplicação ---
@@ -80,9 +81,9 @@ variable "jwt_secret" {
 }
 
 variable "mail_host" {
-  description = "SMTP host (ex: email-smtp.us-east-1.amazonaws.com para SES)"
+  description = "SMTP host (ex: email-smtp.sa-east-1.amazonaws.com para SES)"
   type        = string
-  default     = "email-smtp.us-east-1.amazonaws.com"
+  default     = "email-smtp.sa-east-1.amazonaws.com"
 }
 
 variable "mail_username" {

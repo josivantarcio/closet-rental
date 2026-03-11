@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Plus, Search, Pencil, Trash2, Loader2, LayoutGrid, List, Tag, Palette, Ruler, FileText } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Loader2, LayoutGrid, List, Tag, Palette, Ruler, FileText, CalendarDays } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/select";
 import { catalogoService } from "@/lib/services/catalogo.service";
 import { ImagemUpload } from "@/components/shared/imagem-upload";
+import { AgendaCalendario } from "@/components/shared/agenda-calendario";
 import { formatCurrency, categoriaLabel } from "@/lib/format";
 import type { ProdutoResponse, ProdutoRequest, CategoriaProduto } from "@/types";
 
@@ -76,6 +77,7 @@ export default function CatalogoPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduto, setEditingProduto] = useState<ProdutoResponse | null>(null);
+  const [agendaProduto, setAgendaProduto] = useState<ProdutoResponse | null>(null);
   const queryClient = useQueryClient();
 
   // Busca no backend quando há texto — usa size grande para cobrir todos os resultados
@@ -305,6 +307,15 @@ export default function CatalogoPage() {
                     <Button
                       variant="outline"
                       size="sm"
+                      className="h-7 w-7 p-0"
+                      title="Ver agenda de ocupação"
+                      onClick={() => setAgendaProduto(produto)}
+                    >
+                      <CalendarDays className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="h-7 w-7 p-0 text-destructive hover:text-destructive"
                       onClick={() => {
                         if (confirm(`Remover "${produto.nome}"?`))
@@ -390,6 +401,15 @@ export default function CatalogoPage() {
                         <Button
                           variant="ghost"
                           size="icon"
+                          className="h-7 w-7"
+                          title="Ver agenda de ocupação"
+                          onClick={() => setAgendaProduto(produto)}
+                        >
+                          <CalendarDays className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-7 w-7 text-muted-foreground hover:text-destructive"
                           onClick={() => {
                             if (confirm(`Remover "${produto.nome}"?`))
@@ -432,6 +452,24 @@ export default function CatalogoPage() {
           </div>
         )}
       </div>
+
+      {/* Dialog agenda de ocupação */}
+      <Dialog open={!!agendaProduto} onOpenChange={(open) => { if (!open) setAgendaProduto(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-2 text-base">
+              <CalendarDays className="h-4 w-4 text-primary" />
+              Agenda — {agendaProduto?.nome}
+            </DialogTitle>
+          </DialogHeader>
+          {agendaProduto && (
+            <AgendaCalendario
+              produtoId={agendaProduto.id}
+              nomeProduto={agendaProduto.nome}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog criar/editar */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

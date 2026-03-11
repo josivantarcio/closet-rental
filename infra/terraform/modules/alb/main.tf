@@ -37,7 +37,7 @@ resource "aws_lb" "main" {
   security_groups    = [aws_security_group.alb.id]
   subnets            = var.public_subnet_ids
 
-  enable_deletion_protection = true
+  enable_deletion_protection = false
 
   tags = { Name = "${var.project}-${var.environment}-alb" }
 }
@@ -64,24 +64,33 @@ resource "aws_lb_target_group" "app" {
   tags = { Name = "${var.project}-${var.environment}-tg" }
 }
 
-# Listener HTTP → redireciona para HTTPS
+# Listener HTTP
+# - Se tiver certificado: redireciona para HTTPS
+# - Se não tiver: encaminha direto para o Target Group (HTTP puro)
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.main.arn
   port              = 80
   protocol          = "HTTP"
 
   default_action {
-    type = "redirect"
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
+    type             = var.certificate_arn == "" ? "forward" : "redirect"
+    target_group_arn = var.certificate_arn == "" ? aws_lb_target_group.app.arn : null
+
+    dynamic "redirect" {
+      for_each = var.certificate_arn != "" ? [1] : []
+      content {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
     }
   }
 }
 
-# Listener HTTPS → encaminha para o Target Group
+# Listener HTTPS — só criado se tiver certificado ACM
 resource "aws_lb_listener" "https" {
+  count = var.certificate_arn != "" ? 1 : 0
+
   load_balancer_arn = aws_lb.main.arn
   port              = 443
   protocol          = "HTTPS"

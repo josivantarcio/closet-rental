@@ -234,7 +234,7 @@
 - [ ] Política de cancelamento com multa graduada (configurável por tenant)
 - [ ] Gestão de caução: `StatusCaucao` enum + fluxo devolução/retenção
 - [ ] Registro de danos na devolução (`itemDanificado`, `descricaoDano`, `valorDesconto`)
-- [ ] Calendário de ocupação por produto (`GET /v1/catalogo/{id}/agenda`)
+- [x] Calendário de ocupação por produto (`GET /v1/catalogo/{id}/agenda`) — backend + 6 testes + frontend mini-calendário
 - [ ] Locação multi-produto (`itens_locacao` — BREAKING CHANGE)
 - [ ] Contrato digital em PDF (`GET /v1/locacoes/{id}/contrato`)
 
@@ -245,11 +245,11 @@
 - [ ] Tabela `notificacoes` — histórico + status de entrega
 - [ ] Eventos: reserva criada, lembrete retirada/devolução, atraso, pagamento confirmado
 
-### FASE 5 — Relatórios e Gráficos (obrigatório)
-- [ ] Novos endpoints: ocupação, inadimplência, ticket médio, receita por categoria, top clientes
-- [ ] Exportação PDF/CSV/XLSX
-- [ ] Frontend: Recharts (LineChart, BarChart, PieChart, AreaChart)
-- [ ] Dashboard executivo com período selecionável (hoje/semana/mês/trimestre/ano)
+### FASE 5 — Relatórios e Gráficos (obrigatório) ✅
+- [x] Novos endpoints: faturamento/periodo, ticket médio, receita por categoria, top clientes, atrasos
+- [x] Exportação PDF/CSV (OpenPDF + ByteArray + blob download no frontend)
+- [x] Frontend: Recharts 3.8 (LineChart faturamento, LineChart ticket médio, BarChart peças, PieChart categorias)
+- [x] Dashboard executivo com período selecionável (3/6/12 meses) + KPIs + ranked lists
 
 ### FASE 6 — Upload de Imagens
 - [ ] AWS S3 + CloudFront CDN

@@ -9,7 +9,7 @@
 
 set -euo pipefail
 
-REGION="us-east-1"
+REGION="sa-east-1"
 BUCKET="closet-rental-tfstate"
 TABLE="closet-rental-tflock"
 

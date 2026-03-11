@@ -1,0 +1,71 @@
+# =============================================================================
+# application-render.yml — Configurações para Render.com + Neon PostgreSQL
+#
+# Variáveis de ambiente necessárias no Render (Environment):
+#   DATABASE_URL  → jdbc:postgresql://ep-***.sa-east-1.aws.neon.tech/aluguel?user=neondb_owner&password=***&sslmode=require
+#   JWT_SECRET    → chave HS256 (mínimo 64 hex chars)
+#   CORS_ALLOWED_ORIGINS → https://seu-app.netlify.app
+# =============================================================================
+
+spring:
+  datasource:
+    # Render injeta DATABASE_URL no formato postgresql:// — Spring precisa de jdbc:postgresql://
+    url: ${DATABASE_URL}
+    username:  # vazio — já está na URL
+    password:  # vazio — já está na URL
+    hikari:
+      # Neon free tier suporta até 100 conexões; pool pequeno para economizar
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      # SSL obrigatório no Neon
+      data-source-properties:
+        sslmode: require
+        channel_binding: require
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+    hibernate:
+      ddl-auto: validate
+
+  devtools:
+    restart:
+      enabled: false
+
+  flyway:
+    enabled: true
+    validate-on-migrate: true
+    out-of-order: false
+    # URL JDBC para o Flyway (mesmo formato do datasource)
+    url: ${DATABASE_URL}
+    user:     # vazio — já está na URL
+    password: # vazio — já está na URL
+
+springdoc:
+  swagger-ui:
+    enabled: true   # mantém Swagger ativo para o cliente testar
+  api-docs:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: never
+
+app:
+  storage:
+    provider: local   # sem S3 por enquanto
+
+  notificacao:
+    email:
+      enabled: false  # sem SES por enquanto

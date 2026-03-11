@@ -14,7 +14,7 @@ terraform {
   backend "s3" {
     bucket         = "closet-rental-tfstate"
     key            = "prod/terraform.tfstate"
-    region         = "us-east-1"
+    region         = "sa-east-1"
     dynamodb_table = "closet-rental-tflock"
     encrypt        = true
   }

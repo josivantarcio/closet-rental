@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: closet-rental-api
+    runtime: docker
+    dockerfilePath: ./backend/closetRental/Dockerfile
+    dockerContext: ./backend/closetRental
+    branch: main
+    region: oregon
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: DATABASE_URL
+        sync: false   # valor sensível — será digitado no dashboard
+      - key: JWT_SECRET
+        sync: false   # valor sensível — será digitado no dashboard
+      - key: CORS_ALLOWED_ORIGINS
+        value: "*"    # atualizar após deploy do Netlify

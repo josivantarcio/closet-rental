@@ -30,10 +30,8 @@ spring:
     properties:
       hibernate:
         format_sql: false
-        # Desabilita validação do schema pelo Hibernate — Flyway já garante
-        javax.persistence.schema-generation.database.action: none
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none   # Flyway já garante o schema — validate causa round-trip desnecessário no startup
 
   devtools:
     restart:

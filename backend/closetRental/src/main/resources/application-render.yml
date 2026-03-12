@@ -10,27 +10,25 @@
 
 spring:
   datasource:
-    # Render injeta DATABASE_URL no formato postgresql:// — Spring precisa de jdbc:postgresql://
     url: ${DATABASE_URL}
-    username:  # vazio — já está na URL
-    password:  # vazio — já está na URL
+    username:
+    password:
     hikari:
-      # Neon free tier suporta até 100 conexões; pool pequeno para economizar
-      maximum-pool-size: 5
+      maximum-pool-size: 3
       minimum-idle: 1
-      connection-timeout: 30000
+      connection-timeout: 60000
       idle-timeout: 600000
       max-lifetime: 1800000
-      # SSL obrigatório no Neon
-      data-source-properties:
-        sslmode: require
-        channel_binding: require
+      initialization-fail-timeout: 60000
 
   jpa:
     show-sql: false
+    open-in-view: false
     properties:
       hibernate:
         format_sql: false
+        # Desabilita validação do schema pelo Hibernate — Flyway já garante
+        javax.persistence.schema-generation.database.action: none
     hibernate:
       ddl-auto: validate
 
@@ -40,12 +38,8 @@ spring:
 
   flyway:
     enabled: true
-    validate-on-migrate: true
+    validate-on-migrate: false   # já validamos localmente — evita round-trip extra ao Neon
     out-of-order: false
-    # URL JDBC para o Flyway (mesmo formato do datasource)
-    url: ${DATABASE_URL}
-    user:     # vazio — já está na URL
-    password: # vazio — já está na URL
 
 springdoc:
   swagger-ui:

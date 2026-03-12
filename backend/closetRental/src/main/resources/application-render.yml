@@ -10,7 +10,7 @@
 
 spring:
   main:
-    lazy-initialization: true   # beans criados sob demanda — reduz startup de ~170s para ~30s
+    lazy-initialization: false  # eager init — Hibernate inicializa junto ao contexto (~40s), não na 1a requisição do health check (~150s)
 
   datasource:
     url: ${DATABASE_URL}

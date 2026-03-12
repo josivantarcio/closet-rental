@@ -9,6 +9,9 @@
 # =============================================================================
 
 spring:
+  main:
+    lazy-initialization: true   # beans criados sob demanda — reduz startup de ~170s para ~30s
+
   datasource:
     url: ${DATABASE_URL}
     username:

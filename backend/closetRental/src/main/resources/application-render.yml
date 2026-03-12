@@ -3,6 +3,7 @@
 #
 # Variáveis de ambiente necessárias no Render (Environment):
 #   DATABASE_URL  → jdbc:postgresql://ep-***.sa-east-1.aws.neon.tech/aluguel?user=neondb_owner&password=***&sslmode=require
+#   PORT          → injetado automaticamente pelo Render (10000)
 #   JWT_SECRET    → chave HS256 (mínimo 64 hex chars)
 #   CORS_ALLOWED_ORIGINS → https://seu-app.netlify.app
 # =============================================================================

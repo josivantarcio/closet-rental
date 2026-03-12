@@ -28,7 +28,7 @@ import java.util.UUID;
  */
 @Slf4j
 @Component
-@Profile({"default", "dev", "test"})
+@Profile({"default", "dev", "test", "render"})
 @RequiredArgsConstructor
 public class DataInitializer implements ApplicationRunner {
 

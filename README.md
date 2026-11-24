@@ -327,7 +327,7 @@ Cada módulo segue a estrutura:
 |---|---|---|
 | `server.port` | `8080` | Porta do servidor |
 | `spring.datasource.url` | `jdbc:postgresql://localhost:5432/aluguel` | URL do banco |
-| `app.jwt.secret` | (definido em yml) | Chave HS256 do JWT |
+| `app.jwt.secret` | — (obrigatória, via `JWT_SECRET`) | Chave HS256 do JWT |
 | `app.jwt.expiration` | `86400` | Expiração do token em segundos (24h) |
 | `app.locacao.caucao-padrao` | `100.00` | Caução padrão |
 | `app.locacao.percentual-multa-diaria` | `0.10` | Multa por dia de atraso (10%) |
